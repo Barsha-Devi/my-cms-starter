@@ -513,7 +513,7 @@ function textField(label, obj, key, opts = {}) {
 }
 
 // Choose one of your pages, or paste a website address.
-function linkField(label, obj, key) {
+function linkField(label, obj, key, mark = markSiteDirty) {
   const lab = el("label"); lab.append(label);
   const sel = el("select"), web = el("input");
   const pagesList = linkPages();
@@ -525,9 +525,9 @@ function linkField(label, obj, key) {
   sel.onchange = () => {
     if (sel.value === "__web") { web.hidden = false; obj[key] = web.value || "https://"; web.value = obj[key]; web.focus(); }
     else { web.hidden = true; obj[key] = sel.value; }
-    markSiteDirty();
+    mark();
   };
-  web.oninput = () => { obj[key] = web.value.trim(); markSiteDirty(); };
+  web.oninput = () => { obj[key] = web.value.trim(); mark(); };
   lab.append(sel, web); return lab;
 }
 
@@ -704,7 +704,11 @@ function siteView(body) {
   if (state.view.name === "page") {
     const ex = (state.lists.pages.extra = state.lists.pages.extra || {}), k = state.view.arg;
     ex[k] = ex[k] || [];
-    body.append(section("Extra sections", "Add your own sections to the bottom of this page: text, images, videos and more.", blockBuilder(ex[k], "extra:" + k)));
+    if (k === "about") {
+      ex.aboutTop = ex.aboutTop || [];
+      body.append(section("Sections above the company logos", "Text, lists, images and more, shown between your introduction and the company logos.", blockBuilder(ex.aboutTop, "extra:aboutTop")));
+      body.append(section("Sections below the company logos", "Shown after the company logos. A good place for a closing line and buttons.", blockBuilder(ex[k], "extra:" + k)));
+    } else body.append(section("Extra sections", "Add your own sections to the bottom of this page: text, images, videos and more.", blockBuilder(ex[k], "extra:" + k)));
   }
 }
 
@@ -734,6 +738,9 @@ const BLOCKS = {
     blank: () => ({ type: "button", label: "Click here", url: "#contact", style: "primary" }),
     fields: [{ k: "label", label: "Button text" }, { k: "url", label: "Goes to (for example #contact or https://...)" },
       { k: "style", type: "select", options: [["primary", "Solid yellow"], ["outline", "Outline"]], label: "Style" }, ALIGN, FONTF] },
+  buttons: { name: "Buttons in a row", desc: "Two or three buttons side by side", summary: b => (b.items || []).map(i => i.label).filter(Boolean).join(", "),
+    blank: () => ({ type: "buttons", items: [{ label: "View my work", url: "#writing", style: "primary" }, { label: "Start a conversation", url: "#contact", style: "outline" }] }),
+    fields: [{ k: "items", type: "buttons" }, ALIGN] },
   quote: { name: "Quote", desc: "A highlighted quote", summary: b => b.text,
     blank: () => ({ type: "quote", text: "A line worth remembering.", author: "" }),
     fields: [{ k: "text", type: "textarea", label: "Quote" }, { k: "author", label: "Who said it (optional)" }, { k: "url", type: "url", label: "Link to the source (optional)" }, FONTF] },
@@ -758,6 +765,9 @@ const TEMPLATES = [
     { type: "heading", level: "2", align: "center", text: "Ready to talk?" }, { type: "text", align: "center", text: "One or two lines inviting people to take the next step." }, { type: "button", align: "center", label: "Write to me", url: "#contact", style: "primary" }] },
   { name: "Photo gallery", desc: "Heading with a grid of pictures", make: () => [{ type: "heading", level: "2", text: "Gallery" }, { type: "gallery", cols: "3", images: [] }] },
   { name: "Video section", desc: "Heading, a video and a note", make: () => [{ type: "heading", level: "2", text: "Watch" }, { type: "video", url: "" }, { type: "text", text: "A few words about the video." }] },
+  { name: "Next steps", desc: "A closing line with buttons", make: () => [
+    { type: "quote", text: "One sentence that sums up what you do.", author: "" },
+    { type: "buttons", items: [{ label: "View my work", url: "#writing", style: "primary" }, { label: "Start a conversation", url: "#contact", style: "outline" }] }] },
   { name: "Highlighted quote", desc: "A large quote with its author", make: () => [{ type: "quote", text: "A line worth remembering.", author: "" }] },
   { name: "Key points", desc: "Heading with a short list", make: () => [{ type: "heading", level: "2", text: "What to know" }, { type: "list", style: "bullets", text: "First point\nSecond point\nThird point" }] }
 ];
@@ -768,7 +778,8 @@ let dragFrom = null;
 function markPagesDirty() {
   state.dirty.pages = true; updateStatus();
   const v = state.view;
-  PV.target = v.name === "cpage" ? "blocks-custom" : v.name === "page" ? "blocks-" + v.arg : null;
+  const k = state.lastBuilder || "";
+  PV.target = k.startsWith("custom:") ? "blocks-custom" : k.startsWith("extra:") ? "blocks-" + k.slice(6) : null;
   refreshPreview();
 }
 
@@ -808,7 +819,22 @@ function galleryEditor(b) {
   add.append(inp); box.append(add); return box;
 }
 
+function buttonsEditor(b) {
+  const box = el("div", "builder"); b.items = b.items || [];
+  b.items.forEach((it, i) => {
+    const row = el("div", "rowbox"), cols = el("div", "cols");
+    const st = el("label"); st.append("Style");
+    const sel = el("select"); [["primary", "Solid yellow"], ["outline", "Outline"]].forEach(([v, n]) => sel.add(new Option(n, v))); sel.value = it.style || "primary";
+    sel.onchange = () => { it.style = sel.value; markPagesDirty(); }; st.append(sel);
+    cols.append(textField("Button text", it, "label", { mark: markPagesDirty }), linkField("Goes to", it, "url", markPagesDirty), st);
+    row.append(rowTools(b.items, i, markPagesDirty), cols); box.append(row);
+  });
+  if (b.items.length < 4) box.append(btn("+ Add a button", () => { b.items.push({ label: "", url: "#contact", style: "outline" }); markPagesDirty(); renderView(); }));
+  return box;
+}
+
 function blockField(b, f) {
+  if (f.type === "buttons") return buttonsEditor(b);
   if (f.type === "images") return galleryEditor(b);
   const lab = el("label"); lab.append(f.label);
   if (f.type === "image") { imageInput(lab, b, f.k, () => renderView()); return lab; }
@@ -880,6 +906,7 @@ function addPicker(blocks) {
 
 function blockBuilder(blocks, key) {
   const box = el("div", "builder");
+  ["focusin", "click"].forEach(ev => box.addEventListener(ev, () => { state.lastBuilder = key; }, true));
   if (!blocks.length) box.append(el("p", "empty", "No sections yet. Press the button below to add one."));
   blocks.forEach((b, i) => { if (!b.id) b.id = uid(); box.append(blockCard(blocks, i)); });
   box.append(btn(state.picker === key ? "Hide the section list" : "+ Add a section", () => { state.picker = state.picker === key ? null : key; renderView(); }, false, "primary"));

@@ -323,10 +323,13 @@ h3.blk-h { font-size: var(--s-lg); }
 .b-gallery img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 10px; display: block; background: #111; }
 .vid { position: relative; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; background: #111; width: 100%; }
 .vid iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
-.b-button a { display: inline-block; padding: 12px 24px; border-radius: 999px; font-weight: 600; border: 1px solid var(--accent); }
-.b-button a.primary { background: var(--accent); color: #000; }
-.b-button a.outline { color: var(--accent); }
-.b-button a:hover { text-decoration: none; opacity: .85; }
+.b-button a, .b-buttons a { display: inline-block; padding: 12px 24px; border-radius: 999px; font-weight: 600; border: 1px solid var(--accent); }
+.b-button a.primary, .b-buttons a.primary { background: var(--accent); color: #000; }
+.b-button a.outline, .b-buttons a.outline { color: var(--accent); }
+.b-button a:hover, .b-buttons a:hover { text-decoration: none; opacity: .85; }
+.btn-row { display: flex; flex-wrap: wrap; gap: 12px; }
+.blk[data-align="center"] .btn-row { justify-content: center; }
+.facts[hidden] { display: none; }
 .b-quote blockquote { margin: 0; display: grid; gap: 10px; border-left: 2px solid var(--accent); padding-left: 22px; }
 .b-quote blockquote p { font-family: var(--display); font-size: 1.5rem; line-height: 1.3; }
 .b-quote footer { color: var(--muted); font-size: var(--s-sm); }
@@ -524,6 +527,7 @@ h3.blk-h { font-size: var(--s-lg); }
         <dl class="facts" id="about-facts"></dl>
       </div>
     </div>
+  <div class="blocks" id="blocks-aboutTop"></div>
   <section class="clients" id="clients" hidden>
       <div class="clients-head"><h2 id="clients-title"></h2></div>
       <ul class="clients-grid" id="clients-list"></ul>
@@ -617,7 +621,7 @@ if (tracking) document.addEventListener("click", e => {
   const a = e.target.closest("a"); if (!a || !a.href) return;
   const text = (a.textContent || "").trim().slice(0, 80);
   if (a.origin && a.origin !== location.origin) gtag("event", "click", { link_url: a.href, link_text: text, outbound: true });
-  else if (a.closest(".b-button")) gtag("event", "button_click", { link_url: a.getAttribute("href"), link_text: text });
+  else if (a.closest(".b-button, .b-buttons")) gtag("event", "button_click", { link_url: a.getAttribute("href"), link_text: text });
 });
 
 
@@ -858,6 +862,7 @@ if (SITE.about.showSocial && SITE.social.length) {
   SITE.social.forEach((l, i) => { if (i) dd.append(" \u00b7 "); dd.append(mkLink(l)); });
   facts.append(dt, dd);
 }
+facts.hidden = !facts.children.length;
 setText("contact-h1", SITE.contact.heading);
 setText("contact-intro", SITE.contact.intro);
 if (SITE.contact.showSocial) SITE.social.forEach(l => document.getElementById("contact-social").append(mkLink(l, true)));
@@ -948,9 +953,20 @@ function renderBlocks(container, blocks, base) {
       }
       case "button": {
         if (!b.label) break;
-        const a = mk("a", b.style === "outline" ? "outline" : "primary", b.label); a.href = safeUrl(b.url) || "#home";
-        if (/^https?:/i.test(a.href)) { a.target = "_blank"; a.rel = "noopener"; }
+        const u = safeUrl(b.url) || "#home", a = mk("a", b.style === "outline" ? "outline" : "primary", b.label); a.href = u;
+        if (/^https?:/i.test(u)) { a.target = "_blank"; a.rel = "noopener"; }
         fontStyle(a, b.font); wrap.append(a); break;
+      }
+      case "buttons": {
+        const row = mk("div", "btn-row");
+        (b.items || []).forEach(it => {
+          if (!it.label) return;
+          const u = safeUrl(it.url) || "#home", a = mk("a", it.style === "outline" ? "outline" : "primary", it.label); a.href = u;
+          if (/^https?:/i.test(u)) { a.target = "_blank"; a.rel = "noopener"; }   // only links to other websites open a new tab
+          row.append(a);
+        });
+        if (row.childNodes.length) wrap.append(row);
+        break;
       }
       case "quote": {
         const bq = mk("blockquote"), p = mk("p", "", b.text); fontStyle(p, b.font); p.dataset.bpath = path + ".text"; bq.append(p);
@@ -981,7 +997,7 @@ function renderBlocks(container, blocks, base) {
     if (wrap.childNodes.length || b.type === "spacer") container.append(wrap);
   });
 }
-["home", "writing", "photos", "quotes", "about", "contact"].forEach(pg =>
+["home", "writing", "photos", "quotes", "aboutTop", "about", "contact"].forEach(pg =>
   renderBlocks(document.getElementById("blocks-" + pg), (PAGESDATA.extra || {})[pg], `extra.${pg}`));
 
 function renderCustom(slug) {
@@ -1005,8 +1021,8 @@ function renderClients() {
   setText("clients-title", CL.title);
   items.forEach(c => {
     const li = mk("li"), a = mk("a", "client");
-    a.href = safeUrl(c.url) || "#about"; a.setAttribute("aria-label", c.name || "Company");
-    if (/^https?:/i.test(a.href)) { a.target = "_blank"; a.rel = "noopener"; }
+    const u = safeUrl(c.url) || "#about"; a.href = u; a.setAttribute("aria-label", c.name || "Company");
+    if (/^https?:/i.test(u)) { a.target = "_blank"; a.rel = "noopener"; }
     if (c.src) {
       const box = mk("span", "client-logo"), img = mk("img"), ink = mk("span", "ink");
       img.src = imgSrc(c.src); img.alt = "";
