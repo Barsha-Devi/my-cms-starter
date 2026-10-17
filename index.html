@@ -215,16 +215,17 @@ article.post .pull { border-left: 2px solid var(--accent); padding-left: 20px; f
 /* About and Now */
 .about { display: grid; max-width: 680px; }
 /* About page with a portrait beside the text */
-.about.has-portrait { max-width: 980px; gap: 32px; }
-.portrait { margin: 0; position: relative; max-width: 340px; padding: 0 12px 12px 0; }
+.about.has-portrait { max-width: none; gap: 32px; }
+.about.has-portrait .prose { max-width: 660px; }
+.portrait { margin: 0; position: relative; max-width: 420px; padding: 0 12px 12px 0; }
 .portrait::before { content: ""; position: absolute; left: 12px; top: 12px; right: 0; bottom: 0; border: 2px solid var(--accent); border-radius: 4px; pointer-events: none; }
 .pframe { position: relative; aspect-ratio: 3 / 4; overflow: hidden; border: 1px solid var(--line); border-radius: 4px; background: var(--panel); }
-.pframe img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; display: block; transform-origin: 60% 42%; }
+.pframe img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; display: block; transform-origin: 80% 46%; }
 .about.has-portrait #about-paras p:nth-child(1) { font-family: var(--display); font-size: var(--s-lg); line-height: 1.3; color: var(--text); }
 .about.has-portrait #about-paras p:last-child:not(:first-child) { border-left: 2px solid var(--accent); padding-left: 16px; color: var(--text); }
 @media (min-width: 820px) {
-  .about.has-portrait { grid-template-columns: 300px minmax(0, 1fr); gap: 56px; align-items: center; }
-  .about.has-portrait.right { grid-template-columns: minmax(0, 1fr) 300px; }
+  .about.has-portrait { grid-template-columns: 400px minmax(0, 1fr); gap: 80px; align-items: start; }
+  .about.has-portrait.right { grid-template-columns: minmax(0, 1fr) 400px; }
   .about.has-portrait.right .portrait { order: 2; justify-self: end; }
 }
 
