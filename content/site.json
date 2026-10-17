@@ -79,7 +79,13 @@
       "photosTitle": "Latest photos",
       "photosLink": "All photos",
       "quoteLabel": "A quote I keep",
-      "quoteLink": "All quotes"
+      "quoteLink": "All quotes",
+      "photo": {
+        "show": true,
+        "which": "",
+        "tag": "Latest photo",
+        "link": "Read the story"
+      }
     },
     "writing": {
       "heading": "Writing",
