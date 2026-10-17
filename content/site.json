@@ -49,6 +49,12 @@
           "url": "https://example.com"
         }
       ]
+    },
+    "portrait": {
+      "show": false,
+      "src": "",
+      "alt": "",
+      "side": "left"
     }
   },
   "contact": {
