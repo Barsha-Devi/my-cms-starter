@@ -221,6 +221,8 @@ article.post .pull { border-left: 2px solid var(--accent); padding-left: 20px; f
 .portrait::before { content: ""; position: absolute; left: 12px; top: 12px; right: 0; bottom: 0; border: 2px solid var(--accent); border-radius: 4px; pointer-events: none; }
 .pframe { position: relative; aspect-ratio: 3 / 4; overflow: hidden; border: 1px solid var(--line); border-radius: 4px; background: var(--panel); }
 .pframe img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; display: block; transform-origin: 80% 46%; }
+.portrait.bw img { filter: grayscale(1) contrast(1.08); transition: filter .5s ease; }
+.portrait.bw:hover img, .portrait.bw:active img { filter: none; }
 .about.has-portrait #about-paras p:nth-child(1) { font-family: var(--display); font-size: var(--s-lg); line-height: 1.3; color: var(--text); }
 .about.has-portrait #about-paras p:last-child:not(:first-child) { border-left: 2px solid var(--accent); padding-left: 16px; color: var(--text); }
 @media (min-width: 820px) {
@@ -883,8 +885,8 @@ setText("about-h1", SITE.about.heading);
 {
   const pt = SITE.about.portrait || {}, wrap = document.getElementById("about-wrap"), fig = document.getElementById("about-portrait");
   const on = !!(pt.show && pt.src);
-  fig.hidden = !on; wrap.classList.toggle("has-portrait", on); wrap.classList.toggle("right", on && pt.side === "right");
-  if (on) { const im = document.getElementById("about-portrait-img"); im.src = imgSrc(pt.src); im.alt = pt.alt || ""; im.style.transform = +pt.zoom > 1 ? `scale(${Math.min(+pt.zoom, 2.5)})` : ""; im.style.filter = pt.bw ? "grayscale(1) contrast(1.08)" : ""; }
+  fig.hidden = !on; fig.classList.toggle("bw", on && !!pt.bw); wrap.classList.toggle("has-portrait", on); wrap.classList.toggle("right", on && pt.side === "right");
+  if (on) { const im = document.getElementById("about-portrait-img"); im.src = imgSrc(pt.src); im.alt = pt.alt || ""; im.style.transform = +pt.zoom > 1 ? `scale(${Math.min(+pt.zoom, 2.5)})` : ""; }
 }
 SITE.about.paragraphs.forEach(t => { const p = document.createElement("p"); p.textContent = t; document.getElementById("about-paras").append(p); });
 const facts = document.getElementById("about-facts");

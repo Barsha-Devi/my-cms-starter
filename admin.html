@@ -702,7 +702,7 @@ function siteSections(d) {
         textField("Short description of the photo", d.about.portrait, "alt"),
         sideChoice(d.about.portrait),
         zoomChoice(d.about.portrait),
-        checkField("Show the photo in black and white", d.about.portrait, "bw")),
+        checkField("Show the photo in black and white (colour appears when pointed at)", d.about.portrait, "bw")),
       section("Heading", null, textField("Heading", d.about, "heading", { font: "about-h1" })),
       paragraphEditor("Introduction text", "Each box is one paragraph.", d.about.paragraphs, "about-paras"),
       listEditor("Facts", "The small list under the text, such as Work or Interests. Add a link to make a line clickable.", d.about.facts, () => ({ label: "", text: "" }),
