@@ -350,6 +350,13 @@ h3.blk-h { font-size: var(--s-lg); }
 .b-columns.rev .col-img { order: 2; }
 .b-columns img { width: 100%; height: auto; border-radius: 12px; display: block; background: #111; }
 .b-list ul, .b-list ol { margin: 0; padding-left: 1.3em; display: grid; gap: 8px; font-size: 1.0625rem; line-height: 1.6; max-width: 68ch; }
+.b-list ul.l-tiles { list-style: none; padding: 0; max-width: none; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+.b-list ul.l-tiles li { position: relative; border: 1px solid var(--line); border-radius: 10px; padding: 22px 18px 18px; font-size: 1rem; line-height: 1.4; transition: border-color .2s ease, transform .2s ease; }
+.b-list ul.l-tiles li::before { content: ""; position: absolute; left: 18px; top: 0; width: 26px; height: 2px; background: var(--accent); }
+.b-list ul.l-tiles li:hover { border-color: var(--accent); transform: translateY(-2px); }
+.b-list ul.l-tags { list-style: none; padding: 0; max-width: none; display: flex; flex-wrap: wrap; gap: 10px; }
+.b-list ul.l-tags li { border: 1px solid var(--line); border-radius: 999px; padding: 8px 18px; font-size: var(--s-sm); }
+.b-list ul.l-tags li:hover { border-color: var(--accent); color: var(--accent); }
 .b-embed iframe { width: 100%; border: 0; border-radius: 12px; background: #111; }
 .b-divider hr { border: 0; border-top: 1px solid var(--line); width: 100%; margin: 0; }
 @media (max-width: 680px) { .b-columns, .b-gallery { grid-template-columns: 1fr; } .b-columns.rev .col-img { order: 0; } }
@@ -1001,7 +1008,7 @@ function renderBlocks(container, blocks, base) {
         wrap.append(left, right); break;
       }
       case "list": {
-        const l = mk(b.style === "numbers" ? "ol" : "ul");
+        const l = mk(b.style === "numbers" ? "ol" : "ul"); if (b.style === "tiles" || b.style === "tags") l.className = "l-" + b.style;
         String(b.text || "").split("\n").map(x => x.trim()).filter(Boolean).forEach(t => { const li = mk("li"); inlineText(li, t); l.append(li); });
         wrap.append(l); break;
       }

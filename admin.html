@@ -769,7 +769,7 @@ const BLOCKS = {
       { k: "side", type: "select", options: [["left", "Image on the left"], ["right", "Image on the right"]], label: "Layout" }] },
   list: { name: "List", desc: "Bullets or numbers", summary: b => (b.text || "").split("\n")[0],
     blank: () => ({ type: "list", style: "bullets", text: "First item\nSecond item\nThird item" }),
-    fields: [{ k: "text", type: "textarea", label: "One item per line" }, { k: "style", type: "select", options: [["bullets", "Bullets"], ["numbers", "Numbers"]], label: "Style" }] },
+    fields: [{ k: "text", type: "textarea", label: "One item per line" }, { k: "style", type: "select", options: [["bullets", "Bullets"], ["numbers", "Numbers"], ["tiles", "Tiles in a grid"], ["tags", "Small tags"]], label: "Style" }] },
   embed: { name: "Embed", desc: "Maps, music, calendars and forms", summary: b => b.code ? "Embedded content" : "No code yet",
     blank: () => ({ type: "embed", code: "", height: "400" }),
     fields: [{ k: "code", type: "textarea", label: "Paste the embed code, or the https:// link, from the service" }, { k: "height", type: "number", label: "Height in pixels" }] },
