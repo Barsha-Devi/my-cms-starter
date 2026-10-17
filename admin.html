@@ -650,6 +650,9 @@ function siteSections(d) {
         textField("Intro text", d.contact, "intro", { area: true, font: "contact-intro" }),
         checkField("Show my social links on the Contact page", d.contact, "showSocial")),
       section("Sending messages", null,
+        (d.contact.formKey || "").trim()
+          ? el("p", "hint", "Connected. Messages go to the email address the key was created for.")
+          : el("p", "tip", "Not connected yet. Until you add a key, visitors do not see the form. They see a short note asking them to use your social links."),
         textField("Form access key (from web3forms.com). Without it, messages are not sent.", d.contact, "formKey"))
     ];
   }

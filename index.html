@@ -11,6 +11,19 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap">
 <script src="fonts.js"></script>
+<script>
+// If the page script never finishes (a blocked file, an old browser), say so instead of showing an empty page.
+setTimeout(function () {
+  if (document.documentElement.dataset.ready) return;
+  var d = document.createElement("div");
+  d.id = "boot-problem"; d.setAttribute("role", "alert");
+  d.style.cssText = "margin:24px auto;max-width:560px;padding:16px 18px;border:1px solid #ffd400;border-radius:12px;background:#0e0e0e;color:#f2f2f2;font:16px/1.5 system-ui,sans-serif;text-align:center";
+  d.appendChild(document.createTextNode("This page is taking too long to load. "));
+  var a = document.createElement("a"); a.href = location.pathname; a.textContent = "Refresh"; a.style.color = "#ffd400";
+  a.onclick = function (e) { e.preventDefault(); location.reload(); };
+  d.appendChild(a); document.body.insertBefore(d, document.body.firstChild);
+}, 8000);
+</script>
 <style>
 /* Layout concept: a quiet black notebook. One narrow reading column, a sticky top nav, photos in an asymmetric grid, a yellow accent used only for links, the active page and one hero word. */
 :root {
@@ -339,6 +352,7 @@ h3.blk-h { font-size: var(--s-lg); }
 </style>
 </head>
 <body>
+<noscript><p style="margin:24px;color:#f2f2f2;font:16px/1.5 system-ui,sans-serif">This site needs JavaScript to show its content.</p></noscript>
 
 <header class="top">
   <div class="wrap nav">
@@ -433,6 +447,10 @@ h3.blk-h { font-size: var(--s-lg); }
       </div>
 
       <div>
+        <div class="thanks" id="c-unavailable" hidden>
+          <h2>Sorry, the form is switched off right now.</h2>
+          <p id="c-unavailable-text"></p>
+        </div>
         <form class="cform" id="cform" novalidate>
           <div class="field">
             <label for="c-name">What should I call you?</label>
@@ -463,7 +481,7 @@ h3.blk-h { font-size: var(--s-lg); }
         <div class="thanks" id="c-thanks" hidden>
           <h2 id="c-thanks-title">Thank you.</h2>
           <p>Your note is on its way. I read every message myself and usually reply within a couple of days.</p>
-          <p class="preview-note">Preview only. Nothing was sent. Add a Web3Forms access key in the admin (Pages and text, Contact) to receive messages.</p>
+          <p class="preview-note">This is the admin preview, so nothing was sent.</p>
           <button type="button" id="c-again">Write another note</button>
         </div>
       </div>
@@ -523,7 +541,28 @@ h3.blk-h { font-size: var(--s-lg); }
 const preview = new URLSearchParams(location.search).has("preview");
 let PV = null;
 if (preview) { try { PV = JSON.parse(sessionStorage.getItem("previewData")); } catch {} }
-const load = f => PV && PV[f] ? Promise.resolve(PV[f]) : fetch("content/" + f + ".json").then(r => r.json());
+// Each content file loads on its own, retries a few times, and falls back to an empty default,
+// so one file that fails to arrive can no longer leave the whole page blank.
+const DEFAULTS = {
+  notes: [], photos: [], writing: [], quotes: [], pages: { extra: {}, custom: [] },
+  site: { nav: [], social: [], brand: "", fonts: {}, pages: { home: {}, writing: {}, photos: {}, quotes: {} },
+    about: { heading: "", paragraphs: [], facts: [], showSocial: false, clients: { title: "", items: [] } },
+    contact: { heading: "", intro: "", showSocial: false, formKey: "" },
+    footer: { prompt: "", ctaLabel: "", ctaUrl: "#contact", links: [], copyright: "" } }
+};
+const failedFiles = [];
+async function load(f) {
+  if (PV && PV[f]) return PV[f];
+  for (let i = 0; i < 3; i++) {
+    try {
+      const r = await fetch("content/" + f + ".json", { cache: "no-cache" });
+      if (!r.ok) throw new Error("status " + r.status);
+      return await r.json();
+    } catch { await new Promise(r => setTimeout(r, 400 * (i + 1))); }
+  }
+  failedFiles.push(f);
+  return JSON.parse(JSON.stringify(DEFAULTS[f]));
+}
 const mimeOf = p => /\.svg$/i.test(p) ? "image/svg+xml" : /\.png$/i.test(p) ? "image/png" : /\.webp$/i.test(p) ? "image/webp" : "image/jpeg";
 const imgSrc = p => PV && PV.__images && PV.__images[p] ? `data:${mimeOf(p)};base64,` + PV.__images[p] : p;
 const [PHOTOS, WRITING, QUOTES, SITE, PAGESDATA] = await Promise.all([load("photos"), load("writing"), load("quotes"), load("site"), load("pages")]);
@@ -665,7 +704,7 @@ document.getElementById("cform").addEventListener("submit", async e => {
   }
   if (tracking) gtag("event", "generate_lead", { topic: mood });
   document.getElementById("c-thanks-title").textContent = `Thank you, ${name}.`;
-  document.querySelector(".preview-note").hidden = !!FORM_ENDPOINT;
+  document.querySelector(".preview-note").hidden = !preview;
   document.getElementById("cform").hidden = true;
   document.getElementById("c-thanks").hidden = false;
 });
@@ -1065,9 +1104,34 @@ function route() {
   trackPage();
 }
 window.addEventListener("hashchange", route);
+// With no key, nothing can be delivered. Visitors are told so and pointed to your other links, instead of being thanked for a message that goes nowhere.
+{
+  const formLive = !!FORM_ENDPOINT || preview;
+  document.getElementById("cform").hidden = !formLive;
+  const un = document.getElementById("c-unavailable"); un.hidden = formLive;
+  if (!formLive) {
+    const t = document.getElementById("c-unavailable-text"); t.textContent = "";
+    const links = (SITE.social || []).filter(l => l.label && safeUrl(l.url));
+    if (links.length) {
+      t.append("Please reach me on ");
+      links.forEach((l, i) => { if (i) t.append(i === links.length - 1 ? " or " : ", "); t.append(mkLink(l)); });
+      t.append(" instead.");
+    } else t.textContent = "Please try again a little later.";
+  }
+}
 route.first = true;
 route();
 route.first = false;
+document.documentElement.dataset.ready = "1";
+const bp = document.getElementById("boot-problem"); if (bp) bp.remove();
+if (failedFiles.length && !preview) {
+  const d = mk("div"); d.setAttribute("role", "alert");
+  d.style.cssText = "margin:16px auto;max-width:560px;padding:14px 18px;border:1px solid #ffd400;border-radius:12px;background:#0e0e0e;color:#f2f2f2;text-align:center";
+  const b = mk("button", "", "Refresh"); b.type = "button"; b.style.cssText = "margin-left:8px;background:none;border:0;color:#ffd400;cursor:pointer;font:inherit;text-decoration:underline";
+  b.onclick = () => location.reload();
+  d.append("Part of this page did not load. ", b);
+  document.body.prepend(d);
+}
 </script>
 </body>
 </html>
