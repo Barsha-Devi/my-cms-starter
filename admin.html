@@ -760,6 +760,9 @@ const BLOCKS = {
   buttons: { name: "Buttons in a row", desc: "Two or three buttons side by side", summary: b => (b.items || []).map(i => i.label).filter(Boolean).join(", "),
     blank: () => ({ type: "buttons", items: [{ label: "View my work", url: "#writing", style: "primary" }, { label: "Start a conversation", url: "#contact", style: "outline" }] }),
     fields: [{ k: "items", type: "buttons" }, ALIGN] },
+  closing: { name: "Closing line with links", desc: "A statement on the left and a stack of links on the right", summary: b => b.text,
+    blank: () => ({ type: "closing", text: "One sentence that sums up what you do.", items: [{ label: "View my work", url: "#writing" }, { label: "Contact me", url: "#contact" }] }),
+    fields: [{ k: "text", type: "textarea", label: "Statement" }, { k: "items", type: "buttons" }] },
   quote: { name: "Quote", desc: "A highlighted quote", summary: b => b.text,
     blank: () => ({ type: "quote", text: "A line worth remembering.", author: "" }),
     fields: [{ k: "text", type: "textarea", label: "Quote" }, { k: "author", label: "Who said it (optional)" }, { k: "url", type: "url", label: "Link to the source (optional)" }, FONTF] },
@@ -784,9 +787,7 @@ const TEMPLATES = [
     { type: "heading", level: "2", align: "center", text: "Ready to talk?" }, { type: "text", align: "center", text: "One or two lines inviting people to take the next step." }, { type: "button", align: "center", label: "Write to me", url: "#contact", style: "primary" }] },
   { name: "Photo gallery", desc: "Heading with a grid of pictures", make: () => [{ type: "heading", level: "2", text: "Gallery" }, { type: "gallery", cols: "3", images: [] }] },
   { name: "Video section", desc: "Heading, a video and a note", make: () => [{ type: "heading", level: "2", text: "Watch" }, { type: "video", url: "" }, { type: "text", text: "A few words about the video." }] },
-  { name: "Next steps", desc: "A closing line with buttons", make: () => [
-    { type: "quote", text: "One sentence that sums up what you do.", author: "" },
-    { type: "buttons", items: [{ label: "View my work", url: "#writing", style: "primary" }, { label: "Start a conversation", url: "#contact", style: "outline" }] }] },
+  { name: "Next steps", desc: "A closing line with links", make: () => [{ type: "closing", text: "One sentence that sums up what you do.", items: [{ label: "View my work", url: "#writing" }, { label: "Start a conversation", url: "#contact" }] }] },
   { name: "Highlighted quote", desc: "A large quote with its author", make: () => [{ type: "quote", text: "A line worth remembering.", author: "" }] },
   { name: "Key points", desc: "Heading with a short list", make: () => [{ type: "heading", level: "2", text: "What to know" }, { type: "list", style: "bullets", text: "First point\nSecond point\nThird point" }] }
 ];
@@ -845,7 +846,8 @@ function buttonsEditor(b) {
     const st = el("label"); st.append("Style");
     const sel = el("select"); [["primary", "Solid yellow"], ["outline", "Outline"]].forEach(([v, n]) => sel.add(new Option(n, v))); sel.value = it.style || "primary";
     sel.onchange = () => { it.style = sel.value; markPagesDirty(); }; st.append(sel);
-    cols.append(textField("Button text", it, "label", { mark: markPagesDirty }), linkField("Goes to", it, "url", markPagesDirty), st);
+    cols.append(textField(b.type === "closing" ? "Link text" : "Button text", it, "label", { mark: markPagesDirty }), linkField("Goes to", it, "url", markPagesDirty));
+    if (b.type !== "closing") cols.append(st);
     row.append(rowTools(b.items, i, markPagesDirty), cols); box.append(row);
   });
   if (b.items.length < 4) box.append(btn("+ Add a button", () => { b.items.push({ label: "", url: "#contact", style: "outline" }); markPagesDirty(); renderView(); }));
