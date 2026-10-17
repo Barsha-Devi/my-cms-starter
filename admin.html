@@ -591,6 +591,17 @@ function paragraphEditor(title, hint, arr, fontId) {
   return section(title, hint, ...kids);
 }
 
+// Picks which photo the banner shows. "The latest photo" keeps itself up to date as you add photos.
+function photoChoice(obj) {
+  const lab = el("label"); lab.append("Which photo");
+  const sel = el("select");
+  sel.add(new Option("The latest photo (updates by itself)", ""));
+  (state.lists.photos || []).forEach(p => { if (p.slug) sel.add(new Option(p.caption || p.place, p.slug)); });
+  sel.value = obj.which || "";
+  sel.onchange = () => { obj.which = sel.value; markSiteDirty(); };
+  lab.append(sel); return lab;
+}
+
 function mailSection(d) {
   const status = el("p", "tip", "Checking whether sending is switched on...");
   const test = btn("Send me a test email", async () => {
@@ -635,6 +646,11 @@ function siteSections(d) {
       section("Top banner", "Put [square brackets] around a word to show it in yellow.",
         textField("Heading", home, "heading", { font: "home-h1" }),
         textField("Text under the heading", home, "lede", { area: true, font: "home-lede" })),
+      section("Photo beside the banner", "Shows one of your photos next to the heading. Pointing at it opens the photo and its story.",
+        checkField("Show a photo on the right of the banner", home.photo, "show"),
+        photoChoice(home.photo),
+        textField("Small tag on the photo", home.photo, "tag"),
+        textField("Link text (used when the photo has a story)", home.photo, "link")),
       section("Latest writing section", null,
         textField("Section title", home, "writingTitle", { font: "home-writing-title" }),
         textField("Link text", home, "writingLink", { font: "home-writing-link" })),
@@ -682,6 +698,7 @@ function siteView(body) {
   d.nav = d.nav || []; d.social = d.social || []; d.fonts = d.fonts || {}; d.brand = d.brand || "";
   d.about.paragraphs = d.about.paragraphs || []; d.about.facts = d.about.facts || []; d.footer.links = d.footer.links || [];
   d.pages = d.pages || {}; ["home", "writing", "photos", "quotes"].forEach(k => d.pages[k] = d.pages[k] || {});
+  d.pages.home.photo = d.pages.home.photo || { show: true, which: "", tag: "Latest photo", link: "Read the story" };
   section.n = 0;
   siteSections(d).forEach(s => body.append(s));
   if (state.view.name === "page") {
