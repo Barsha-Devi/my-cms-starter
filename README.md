@@ -1,4 +1,4 @@
-# Git CMS Starter
+# My CMS Starter
 
 A small, free content management system for personal and portfolio sites.
 
@@ -28,7 +28,7 @@ You need [Node.js](https://nodejs.org) 18 or newer. No GitHub account and no set
 
 ```bash
 git clone <this repository>
-cd git-cms-starter
+cd my-cms-starter
 npm run dev
 ```
 

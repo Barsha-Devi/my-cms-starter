@@ -33,7 +33,7 @@ async function gh(token, path, options = {}) {
     headers: {
       Authorization: `Bearer ${token}`,
       Accept: "application/vnd.github+json",
-      "User-Agent": "git-cms-starter",
+      "User-Agent": "my-cms-starter",
       ...(options.headers || {})
     }
   });
