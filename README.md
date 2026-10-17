@@ -16,6 +16,8 @@ There is no database, no server to look after, no build step and no dependencies
 
 **Design controls.** A font picker with 42 free Google Fonts on every piece of text, plus menu, footer, About and Contact editors.
 
+**A contact form that emails you.** Messages are sent through Resend's free plan, with spam protection built in and a button in the admin to send yourself a test. Your email address stays in your hosting settings, never in the code.
+
 **Teams.** Add people by GitHub username. They sign in with their own GitHub account. They need no keys and no access to your repository.
 
 **Tracking.** Optional Google Analytics with each page, photo and article counted separately, and a UTM link builder for the links you share.
@@ -69,7 +71,7 @@ Your browser  ->  /api (small serverless functions)  ->  GitHub  ->  new commit 
 | `team/users.json` | The people you have added (not published to the web) |
 | `api/` | Sign in, read and save content, manage the team |
 | `dev/` | The local development server and the checks |
-| `docs/` | Setup and customisation guides |
+| `docs/` | Setup, contact form and customisation guides |
 
 ## Use it with your own design
 

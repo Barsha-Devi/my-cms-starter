@@ -70,7 +70,7 @@ Team members can edit everything. Only you, the owner named in `ALLOWED_USER`, c
 
 ## 8. Optional extras
 
-**Receive messages from the Contact form.** Create a free key at https://web3forms.com using the email address that should receive messages. In the admin open **Pages**, **Contact**, and paste the key into **Form access key**.
+**Receive messages from the Contact form.** Follow [CONTACT-SETUP.md](CONTACT-SETUP.md). It takes about ten minutes, uses Resend's free plan, and ends with a test button in the admin. Until it is set up, visitors see a short note asking them to use your social links. A Web3Forms access key in **Pages**, **Contact** also works as a fallback.
 
 **Count visits.** Create a free Google Analytics property, copy the Measurement ID (it starts with `G-`), and paste it into **Whole site**, **Tracking and links**. The same screen has a link builder that adds UTM tags to the links you share.
 
@@ -100,5 +100,8 @@ Team members can edit everything. Only you, the owner named in `ALLOWED_USER`, c
 | `GITHUB_OWNER` | no | Repository owner. Filled in by Vercel |
 | `GITHUB_REPO` | no | Repository name. Filled in by Vercel |
 | `GITHUB_BRANCH` | no | Branch to edit. Defaults to `main` |
+| `RESEND_API_KEY` | for the contact form | Your Resend API key |
+| `CONTACT_TO` | for the contact form | The email address that receives messages |
+| `CONTACT_FROM` | no | A sender address on a domain you verified in Resend |
 
 If your repository belongs to a GitHub organisation, `GITHUB_OWNER` will be the organisation, so set `ALLOWED_USER` to your own username.

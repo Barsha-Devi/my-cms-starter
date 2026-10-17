@@ -591,6 +591,29 @@ function paragraphEditor(title, hint, arr, fontId) {
   return section(title, hint, ...kids);
 }
 
+function mailSection(d) {
+  const status = el("p", "tip", "Checking whether sending is switched on...");
+  const test = btn("Send me a test email", async () => {
+    test.disabled = true;
+    try {
+      const r = await fetch("/api/contact", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ test: true }) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error((j.error || "The test did not work.") + (j.detail ? " (" + j.detail + ")" : ""));
+      toast("Test email sent. Check your inbox, and your spam folder too.");
+    } catch (e) { toast(e.message, true); }
+    test.disabled = false;
+  }, false, "primary");
+  test.hidden = true;
+  fetch("/api/contact", { cache: "no-store" }).then(r => r.ok ? r.json() : { enabled: false }).then(j => {
+    status.className = j.enabled ? "hint" : "tip";
+    status.textContent = j.enabled ? "Connected. Messages from your contact form are emailed to you through Resend." : "Not connected yet. Until it is, visitors see a short note asking them to use your social links.";
+    test.hidden = !j.enabled;
+  }).catch(() => { status.textContent = "Could not check right now."; });
+  const steps = el("p", "hint", "To connect it. 1) Sign up at resend.com with the email address that should receive messages. 2) Create an API key. 3) In your hosting settings add RESEND_API_KEY (the key) and CONTACT_TO (that email address), then redeploy. The full steps are in docs/CONTACT-SETUP.md in your repository.");
+  return section("Sending messages", null, status, test, steps,
+    textField("Optional fallback. A Web3Forms access key, used only if Resend is not set up.", d.contact, "formKey"));
+}
+
 function siteSections(d) {
   const pg = d.pages, home = pg.home, v = state.view;
   const linkRow = (r, c) => c.append(textField("Name", r, "label"), linkField("Goes to", r, "url"));
@@ -649,11 +672,7 @@ function siteSections(d) {
         textField("Heading", d.contact, "heading", { font: "contact-h1" }),
         textField("Intro text", d.contact, "intro", { area: true, font: "contact-intro" }),
         checkField("Show my social links on the Contact page", d.contact, "showSocial")),
-      section("Sending messages", null,
-        (d.contact.formKey || "").trim()
-          ? el("p", "hint", "Connected. Messages go to the email address the key was created for.")
-          : el("p", "tip", "Not connected yet. Until you add a key, visitors do not see the form. They see a short note asking them to use your social links."),
-        textField("Form access key (from web3forms.com). Without it, messages are not sent.", d.contact, "formKey"))
+      mailSection(d)
     ];
   }
 }

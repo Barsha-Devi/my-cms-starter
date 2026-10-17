@@ -46,6 +46,18 @@ async function run() {
   check("refuses an SVG with an event handler", (await bad("img/y.svg", '<svg xmlns="http://www.w3.org/2000/svg" onload="alert(1)"/>')).status === 400);
   check("refuses files outside the images folder", (await bad("../evil.png", "x")).status === 400);
 
+  // The contact form
+  const post = (body, headers = {}) => call("/api/contact", { method: "POST", body: JSON.stringify(body), headers: { "X-Admin": "0", ...headers } });
+  const msg = { name: "Ada", email: "ada@example.org", topic: "idea", message: "Hello there", company: "", elapsed: 9000 };
+  check("the contact form reports it is switched on", (await call("/api/contact")).body.enabled === true);
+  check("sends a good message", (await post(msg)).status === 200);
+  check("quietly drops a robot that fills the hidden field", (await post({ ...msg, company: "Acme" })).status === 200);
+  check("refuses a form sent too fast", (await post({ ...msg, elapsed: 200 })).status === 400);
+  check("refuses a bad email address", (await post({ ...msg, email: "nope" })).status === 400);
+  check("refuses an empty message", (await post({ ...msg, message: "  " })).status === 400);
+  check("refuses messages from another website", (await post(msg, { Origin: "https://evil.example" })).status === 403);
+  check("the admin test email works when signed in", (await call("/api/contact", { method: "POST", body: JSON.stringify({ test: true }) })).status === 200);
+
   const team = await call("/api/team");
   check("the owner can read the team", team.status === 200 && Array.isArray(team.body.users));
   check("rejects a bad username", (await call("/api/team", { method: "PUT", body: JSON.stringify({ users: [{ login: "bad name!" }] }) })).status === 400);

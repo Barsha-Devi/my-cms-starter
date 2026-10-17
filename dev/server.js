@@ -4,6 +4,7 @@
 // the files on your disk. You are signed in automatically. Nothing here is used in production.
 //
 //   npm run dev        then open http://localhost:3000/admin.html
+// The contact form works too. Messages are printed in this terminal instead of being emailed.
 //
 // Options (environment variables): PORT (default 3000), DEV_USER (default local-owner), CMS_ROOT (folder holding content, img and team)
 const http = require("http");
@@ -20,7 +21,8 @@ const DEV_USER = process.env.DEV_USER || "local-owner";
 // Pretend to be a fully configured deployment. These must be set before the API files are loaded.
 Object.assign(process.env, {
   ALLOWED_USER: DEV_USER, GITHUB_OWNER: "local", GITHUB_REPO: "repo", GITHUB_BRANCH: "main",
-  GITHUB_TOKEN: "local-dev-token", GITHUB_CLIENT_ID: "local", GITHUB_CLIENT_SECRET: "local"
+  GITHUB_TOKEN: "local-dev-token", GITHUB_CLIENT_ID: "local", GITHUB_CLIENT_SECRET: "local",
+  RESEND_API_KEY: "local-dev-key", CONTACT_TO: "you@example.com"
 });
 
 const sha = buf => crypto.createHash("sha1").update(buf).digest("hex");
@@ -29,8 +31,17 @@ const sha = buf => crypto.createHash("sha1").update(buf).digest("hex");
 const realFetch = global.fetch;
 global.fetch = async (url, opts = {}) => {
   const u = String(url);
-  if (!u.startsWith("https://api.github.com")) return realFetch(url, opts);
   const reply = (status, body) => ({ ok: status < 300, status, text: async () => JSON.stringify(body), json: async () => body });
+  // The contact form. Emails are printed here instead of being sent.
+  if (u === "https://api.resend.com/emails") {
+    const m = JSON.parse(opts.body);
+    console.log("\n  [email that would be sent]");
+    console.log(`    to        ${m.to}\n    reply-to  ${m.reply_to || "-"}\n    subject   ${m.subject}\n`);
+    String(m.text).split("\n").forEach(l => console.log("    " + l));
+    console.log("");
+    return reply(200, { id: "local" });
+  }
+  if (!u.startsWith("https://api.github.com")) return realFetch(url, opts);
   if (u.endsWith("/user")) return reply(200, { login: DEV_USER });
   const m = u.match(/\/repos\/[^/]+\/[^/]+\/contents\/([^?]+)/);
   if (!m) return reply(404, { message: "Not Found" });

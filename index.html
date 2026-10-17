@@ -474,6 +474,10 @@ h3.blk-h { font-size: var(--s-lg); }
             <label for="c-msg" id="c-msg-label">Tell me the idea in a few lines.</label>
             <textarea id="c-msg" name="message" placeholder="It starts with..."></textarea>
           </div>
+          <div style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden" aria-hidden="true">
+            <label for="c-company">Leave this empty</label>
+            <input id="c-company" name="company" type="text" tabindex="-1" autocomplete="off">
+          </div>
           <p class="err" id="c-err" aria-live="polite"></p>
           <button class="send" type="submit">Send it my way &#8594;</button>
         </form>
@@ -695,13 +699,23 @@ document.getElementById("cform").addEventListener("submit", async e => {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err.textContent = "Add an email address so I can write back."; return document.getElementById("c-email").focus(); }
   if (!msg) { err.textContent = "Write a few words before sending."; return document.getElementById("c-msg").focus(); }
   err.textContent = "";
-  if (FORM_ENDPOINT) {
-    try {
+  const sendBtn = document.querySelector("#cform .send"); sendBtn.disabled = true;
+  try {
+    if (MAIL_ON) {
+      const r = await fetch("/api/contact", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, topic: mood, message: msg, company: document.getElementById("c-company").value, elapsed: Date.now() - pageStart }) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw Object.assign(new Error(j.error || ""), { friendly: !!j.error });
+    } else if (FORM_ENDPOINT) {
       const r = await fetch(FORM_ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify({ access_key: FORM_KEY, subject: `New note on your site from ${name} (${mood})`, from_name: name, name, email, topic: mood, message: msg }) });
       const j = await r.json().catch(() => ({}));
       if (!r.ok || j.success === false) throw new Error();
-    } catch { err.textContent = "That did not go through. Please try again in a moment."; return; }
+    }
+  } catch (ex) {
+    err.textContent = ex.friendly ? ex.message : "That did not go through. Please try again in a moment.";
+    sendBtn.disabled = false; return;
   }
+  sendBtn.disabled = false;
   if (tracking) gtag("event", "generate_lead", { topic: mood });
   document.getElementById("c-thanks-title").textContent = `Thank you, ${name}.`;
   document.querySelector(".preview-note").hidden = !preview;
@@ -1104,11 +1118,17 @@ function route() {
   trackPage();
 }
 window.addEventListener("hashchange", route);
-// With no key, nothing can be delivered. Visitors are told so and pointed to your other links, instead of being thanked for a message that goes nowhere.
-{
-  const formLive = !!FORM_ENDPOINT || preview;
+// Messages can be sent through the site's own email function (Resend) or, as a fallback, a Web3Forms key.
+// With neither, nothing can be delivered, so visitors are told so and pointed to your other links.
+let MAIL_ON = false, mailChecked = preview || !!FORM_ENDPOINT;
+const pageStart = Date.now();
+function applyContactState() {
+  if (!document.getElementById("c-thanks").hidden) return;      // a message was just sent, leave the thank you showing
+  const formLive = MAIL_ON || !!FORM_ENDPOINT || preview;
+  const un = document.getElementById("c-unavailable");
+  if (!formLive && !mailChecked) { document.getElementById("cform").hidden = true; un.hidden = true; return; }   // wait for the check, so the wrong message never flashes
   document.getElementById("cform").hidden = !formLive;
-  const un = document.getElementById("c-unavailable"); un.hidden = formLive;
+  un.hidden = formLive;
   if (!formLive) {
     const t = document.getElementById("c-unavailable-text"); t.textContent = "";
     const links = (SITE.social || []).filter(l => l.label && safeUrl(l.url));
@@ -1118,6 +1138,12 @@ window.addEventListener("hashchange", route);
       t.append(" instead.");
     } else t.textContent = "Please try again a little later.";
   }
+}
+applyContactState();
+if (!preview && !FORM_ENDPOINT) {
+  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 5000);
+  fetch("/api/contact", { cache: "no-store", signal: ctl.signal }).then(r => r.ok ? r.json() : null).then(j => { MAIL_ON = !!(j && j.enabled); })
+    .catch(() => {}).finally(() => { clearTimeout(timer); mailChecked = true; applyContactState(); });
 }
 route.first = true;
 route();
