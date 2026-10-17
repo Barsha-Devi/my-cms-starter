@@ -214,6 +214,19 @@ article.post .pull { border-left: 2px solid var(--accent); padding-left: 20px; f
 
 /* About and Now */
 .about { display: grid; max-width: 680px; }
+/* About page with a portrait beside the text */
+.about.has-portrait { max-width: 980px; gap: 32px; }
+.portrait { margin: 0; position: relative; max-width: 320px; padding: 0 12px 12px 0; }
+.portrait::before { content: ""; position: absolute; left: 12px; top: 12px; right: 0; bottom: 0; border: 2px solid var(--accent); border-radius: 4px; pointer-events: none; }
+.pframe { position: relative; aspect-ratio: 3 / 4; overflow: hidden; border: 1px solid var(--line); border-radius: 4px; background: var(--panel); }
+.pframe img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; display: block; }
+.about.has-portrait #about-paras p:nth-child(1) { font-family: var(--display); font-size: var(--s-lg); line-height: 1.3; color: var(--text); }
+.about.has-portrait #about-paras p:last-child:not(:first-child) { border-left: 2px solid var(--accent); padding-left: 16px; color: var(--text); }
+@media (min-width: 820px) {
+  .about.has-portrait { grid-template-columns: 280px minmax(0, 1fr); gap: 56px; align-items: center; }
+  .about.has-portrait.right { grid-template-columns: minmax(0, 1fr) 280px; }
+  .about.has-portrait.right .portrait { order: 2; justify-self: end; }
+}
 
 .prose { display: grid; gap: 18px; font-size: 1.125rem; line-height: 1.75; }
 .facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 10px 24px; font-size: var(--s-sm); border-top: 1px solid var(--line); padding-top: 20px; }
@@ -520,7 +533,8 @@ h3.blk-h { font-size: var(--s-lg); }
 
   <!-- ABOUT -->
   <section class="page" id="p-about" hidden>
-    <div class="about">
+    <div class="about" id="about-wrap">
+      <figure class="portrait" id="about-portrait" hidden><div class="pframe"><img id="about-portrait-img" alt="" width="750" height="1000" loading="eager"></div></figure>
       <div class="prose">
         <h1 id="about-h1" style="font-size: var(--s-2xl); line-height: 1.05; font-weight: 600;"></h1>
         <div id="about-paras" style="display: contents;"></div>
@@ -848,6 +862,12 @@ setText("qb-label", PG.home.quoteLabel); setText("qb-link", (PG.home.quoteLink |
 setText("writing-h1", PG.writing.heading); setText("writing-lede", PG.writing.lede);
 setText("photos-h1", PG.photos.heading); setText("quotes-h1", PG.quotes.heading);
 setText("about-h1", SITE.about.heading);
+{
+  const pt = SITE.about.portrait || {}, wrap = document.getElementById("about-wrap"), fig = document.getElementById("about-portrait");
+  const on = !!(pt.show && pt.src);
+  fig.hidden = !on; wrap.classList.toggle("has-portrait", on); wrap.classList.toggle("right", on && pt.side === "right");
+  if (on) { const im = document.getElementById("about-portrait-img"); im.src = imgSrc(pt.src); im.alt = pt.alt || ""; }
+}
 SITE.about.paragraphs.forEach(t => { const p = document.createElement("p"); p.textContent = t; document.getElementById("about-paras").append(p); });
 const facts = document.getElementById("about-facts");
 SITE.about.facts.forEach(f => {

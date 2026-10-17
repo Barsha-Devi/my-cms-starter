@@ -602,6 +602,19 @@ function photoChoice(obj) {
   lab.append(sel); return lab;
 }
 
+function portraitPicker(pt) {
+  const lab = el("label"); lab.append("Your photo");
+  imageInput(lab, pt, "src", () => { markSiteDirty(); });
+  return lab;
+}
+function sideChoice(pt) {
+  const lab = el("label"); lab.append("Which side");
+  const sel = el("select"); [["left", "Left of the text"], ["right", "Right of the text"]].forEach(([v, n]) => sel.add(new Option(n, v)));
+  sel.value = pt.side === "right" ? "right" : "left";
+  sel.onchange = () => { pt.side = sel.value; markSiteDirty(); };
+  lab.append(sel); return lab;
+}
+
 function mailSection(d) {
   const status = el("p", "tip", "Checking whether sending is switched on...");
   const test = btn("Send me a test email", async () => {
@@ -676,6 +689,11 @@ function siteSections(d) {
       section("Quote cards", "The quotes themselves are in Your content, Quotes.", fontRow("Font for the quotes", "quotes-list"))
     ];
     case "about": return [
+      section("Portrait", "A photo of you beside your introduction, with a yellow frame.",
+        checkField("Show a portrait on the About page", d.about.portrait, "show"),
+        portraitPicker(d.about.portrait),
+        textField("Short description of the photo", d.about.portrait, "alt"),
+        sideChoice(d.about.portrait)),
       section("Heading", null, textField("Heading", d.about, "heading", { font: "about-h1" })),
       paragraphEditor("Introduction text", "Each box is one paragraph.", d.about.paragraphs, "about-paras"),
       listEditor("Facts", "The small list under the text, such as Work or Interests. Add a link to make a line clickable.", d.about.facts, () => ({ label: "", text: "" }),
@@ -696,6 +714,7 @@ function siteSections(d) {
 function siteView(body) {
   const d = state.lists.site;
   d.nav = d.nav || []; d.social = d.social || []; d.fonts = d.fonts || {}; d.brand = d.brand || "";
+  d.about.portrait = d.about.portrait || { show: false, src: "", alt: "", side: "left" };
   d.about.paragraphs = d.about.paragraphs || []; d.about.facts = d.about.facts || []; d.footer.links = d.footer.links || [];
   d.pages = d.pages || {}; ["home", "writing", "photos", "quotes"].forEach(k => d.pages[k] = d.pages[k] || {});
   d.pages.home.photo = d.pages.home.photo || { show: true, which: "", tag: "Latest photo", link: "Read the story" };
