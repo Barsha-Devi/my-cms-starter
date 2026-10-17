@@ -1,0 +1,23 @@
+[
+  {
+    "d": "2026-03-01",
+    "pub": "site",
+    "t": "A sample article written on this site",
+    "x": "Articles can live on your own site, with the full text written in the admin.",
+    "slug": "a-sample-article",
+    "body": [
+      "This article is stored in a file in your repository and shown on its own page.",
+      "## A small heading",
+      "Use **bold**, *italic* and [links](https://example.com) inside paragraphs."
+    ]
+  },
+  {
+    "d": "2026-02-01",
+    "pub": "medium.com",
+    "u": "https://medium.com",
+    "img": "img/sample-2.svg",
+    "t": "A sample article published somewhere else",
+    "x": "Articles published on other sites link out to them.",
+    "slug": "a-sample-elsewhere"
+  }
+]

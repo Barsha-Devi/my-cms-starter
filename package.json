@@ -1,0 +1,14 @@
+{
+  "name": "git-cms-starter",
+  "version": "0.1.0",
+  "description": "A small, free, git-based CMS with a live visual editor. No database, no dependencies. Edits are saved as commits to your GitHub repository.",
+  "license": "MIT",
+  "scripts": {
+    "dev": "node dev/server.js",
+    "test": "node dev/smoke-test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": ["cms", "git-based-cms", "headless", "static-site", "vercel", "github"]
+}

@@ -1,0 +1,99 @@
+{
+  "nav": [
+    {
+      "label": "Writing",
+      "url": "#writing"
+    },
+    {
+      "label": "Photos",
+      "url": "#photos"
+    },
+    {
+      "label": "About",
+      "url": "#about"
+    },
+    {
+      "label": "Quotes",
+      "url": "#quotes"
+    }
+  ],
+  "social": [],
+  "about": {
+    "heading": "Hi, I am Your Name.",
+    "paragraphs": [
+      "This is the About page. Click any text on the page in the admin, or use the editor on the left, to make it your own.",
+      "Add your story here. Leave a blank line between paragraphs."
+    ],
+    "facts": [
+      {
+        "label": "Work",
+        "text": "What you do"
+      },
+      {
+        "label": "Interests",
+        "text": "Things you care about"
+      },
+      {
+        "label": "Contact",
+        "text": "Write to me",
+        "url": "#contact"
+      }
+    ],
+    "showSocial": true,
+    "clients": {
+      "title": "Companies I have worked with",
+      "items": [
+        {
+          "name": "Example Co",
+          "src": "img/logo-sample.svg",
+          "url": "https://example.com"
+        }
+      ]
+    }
+  },
+  "contact": {
+    "heading": "Let's talk.",
+    "intro": "An idea, a question, or just a hello. Write a few lines and I will reply.",
+    "showSocial": true,
+    "formKey": ""
+  },
+  "footer": {
+    "prompt": "Have an idea or a question?",
+    "ctaLabel": "Let's talk",
+    "ctaUrl": "#contact",
+    "links": [
+      {
+        "label": "Contact",
+        "url": "#contact"
+      }
+    ],
+    "copyright": "© 2026 Your Name"
+  },
+  "brand": "Your Name",
+  "pages": {
+    "home": {
+      "heading": "Notes on the [things] I am learning.",
+      "lede": "A short line about what this site is for.",
+      "writingTitle": "Latest writing",
+      "writingLink": "All writing",
+      "photosTitle": "Latest photos",
+      "photosLink": "All photos",
+      "quoteLabel": "A quote I keep",
+      "quoteLink": "All quotes"
+    },
+    "writing": {
+      "heading": "Writing",
+      "lede": "Articles I have written."
+    },
+    "photos": {
+      "heading": "Photos"
+    },
+    "quotes": {
+      "heading": "Lines worth keeping."
+    }
+  },
+  "fonts": {},
+  "analytics": {
+    "gaId": ""
+  }
+}

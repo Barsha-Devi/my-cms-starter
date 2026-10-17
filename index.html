@@ -1,0 +1,1073 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="A personal site with writing, photos and quotes.">
+<!-- Keeps search engines away while the site is private. Delete this line at launch. -->
+<meta name="robots" content="noindex, nofollow">
+<title>My site</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap">
+<script src="fonts.js"></script>
+<style>
+/* Layout concept: a quiet black notebook. One narrow reading column, a sticky top nav, photos in an asymmetric grid, a yellow accent used only for links, the active page and one hero word. */
+:root {
+  --ink: #000000;        /* page */
+  --panel: #0e0e0e;      /* raised surfaces */
+  --line: #262626;       /* hairlines */
+  --text: #ffffff;       /* body text */
+  --muted: #a1a1a1;      /* dates, captions */
+  --accent: #ffd400;     /* links, active state */
+  --warm: #ffd400;       /* tags, photo metadata */
+  --display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --nav: "Inter", "Segoe UI", system-ui, sans-serif;
+  --body: "Inter", "Segoe UI", system-ui, sans-serif;
+  --mono: var(--body);
+  --s-xs: .8125rem; --s-sm: .9375rem; --s-md: 1.0625rem; --s-lg: 1.375rem; --s-xl: 2rem; --s-2xl: clamp(2.4rem, 6vw, 3.75rem);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { overflow-x: clip; background: var(--ink); color: var(--text); font-family: var(--body); font-size: var(--s-md); line-height: 1.65; padding-inline: 20px; padding-block: 0 64px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 3px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; letter-spacing: -.02em; }
+p { margin: 0; }
+.wrap { max-width: 1200px; margin-inline: auto; }
+.read { max-width: 640px; }
+
+/* Nav */
+header.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: rgba(0, 0, 0, .8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); margin-inline: -20px; padding-inline: 20px; }
+.nav { display: flex; align-items: center; justify-content: space-between; gap: 16px 32px; padding-block: 25px 24px; flex-wrap: wrap; }
+.brand { font-family: var(--display); font-weight: 700; font-size: 1.5rem; line-height: 1; letter-spacing: .01em; text-transform: uppercase; color: var(--text); }
+.brand:hover { text-decoration: none; }
+.nav ul { list-style: none; display: flex; flex-wrap: wrap; gap: 8px 24px; margin: 0; padding: 0; }
+.nav ul a { display: block; font-family: var(--nav); font-size: .875rem; line-height: 19.6px; color: var(--text); }
+.nav ul a:hover { text-decoration: none; }
+.roll { display: block; height: 19.6px; overflow: hidden; }
+.roll span { display: block; transition: transform .35s cubic-bezier(.2, .7, .2, 1); }
+.roll span + span { opacity: .6; }
+.nav ul a:hover .roll span, .nav ul a:focus-visible .roll span { transform: translateY(-100%); }
+.nav ul a[aria-current="page"] { color: var(--accent); }
+@media (prefers-reduced-motion: reduce) { .roll span { transition: none; } }
+
+main { padding-block: 56px 0; }
+section.page { display: grid; gap: 48px; }
+.lede { font-size: var(--s-lg); color: var(--muted); line-height: 1.5; max-width: 34ch; }
+.hero h1 { font-size: var(--s-2xl); line-height: 1.05; font-weight: 600; max-width: 16ch; }
+.hero h1 em { font-style: normal; color: var(--accent); }
+.hero { display: grid; gap: 20px; }
+
+.split { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 56px; align-items: start; }
+@media (max-width: 820px) { .split { grid-template-columns: 1fr; gap: 48px; } }
+.block-title { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--line); margin-bottom: 8px; }
+.block-title h2 { font-size: var(--s-lg); font-weight: 600; }
+.block-title a { font-size: var(--s-sm); }
+
+/* Notes list */
+/* Writing, published elsewhere */
+/* Writing index: a quiet table of contents */
+.index { list-style: none; margin: 0; padding: 0; font-size: var(--s-md); }
+.index li { border-bottom: 1px solid var(--line); }
+.index .head { display: grid; grid-template-columns: 72px minmax(0, 1fr) 140px 24px; gap: 24px; padding-block: 10px; font-size: var(--s-sm); color: var(--muted); border-bottom: 1px solid var(--line); }
+.index a { display: grid; grid-template-columns: 72px minmax(0, 1fr) 140px 24px; gap: 24px; padding-block: 16px; color: var(--text); align-items: baseline; transition: background .2s; }
+.index a:hover { text-decoration: none; }
+.index time, .index .site, .index .arr { color: var(--muted); font-variant-numeric: tabular-nums; }
+.index h3 { font-family: var(--body); font-size: var(--s-md); font-weight: 500; line-height: 1.4; letter-spacing: 0; transition: color .15s; }
+.index .arr { text-align: right; transition: transform .2s, color .15s; }
+.index a:hover h3, .index a:hover .site, .index a:hover .arr, .index a:focus-visible h3 { color: var(--accent); }
+.index a:hover .arr { transform: translate(2px, -2px); }
+@media (max-width: 560px) {
+  .index .head { display: none; }
+  .index a { grid-template-columns: minmax(0, 1fr) 20px; gap: 4px 12px; }
+  .index time, .index .site { grid-column: 1; font-size: var(--s-sm); }
+  .index h3 { grid-column: 1; grid-row: 2; }
+  .index .site { grid-row: 3; }
+  .index .arr { grid-column: 2; grid-row: 1 / 4; align-self: center; }
+}
+.home-block { display: grid; gap: 20px; }
+/* Home quote: a compact yellow block inside the page width */
+.quote-band { background: var(--accent); color: var(--ink); padding-block: clamp(28px, 4vw, 44px); padding-inline: clamp(20px, 4vw, 44px); }
+.qb-in { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px 32px; align-items: end; }
+.qb-in .qb-label { grid-column: 1 / -1; }
+.qb-label { font-family: var(--nav); font-size: var(--s-sm); font-weight: 600; }
+.quote-band blockquote { display: grid; gap: 10px; }
+.quote-band blockquote p { font-family: var(--display); font-size: clamp(1.25rem, 2.4vw, 1.75rem); font-weight: 600; line-height: 1.25; letter-spacing: -.01em; max-width: 40ch; text-wrap: balance; }
+.quote-band blockquote footer { font-size: var(--s-sm); color: var(--ink); }
+.quote-band a { color: var(--ink); font-weight: 600; font-size: var(--s-sm); justify-self: start; border-bottom: 1px solid var(--ink); }
+.quote-band a:hover { text-decoration: none; border-bottom-width: 2px; }
+.quote-band a:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+@media (max-width: 640px) { .writing a { grid-template-columns: 1fr; gap: 6px; } }
+.notes { list-style: none; margin: 0; padding: 0; }
+.notes li { border-bottom: 1px solid var(--line); }
+.notes a.row { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 20px; padding-block: 20px; color: var(--text); }
+.notes a.row:hover { text-decoration: none; }
+.notes a.row:hover h3 { color: var(--accent); }
+.notes time { font-family: var(--mono); font-size: var(--s-xs); color: var(--muted); padding-top: 5px; font-variant-numeric: tabular-nums; }
+.notes h3 { font-size: 1.1875rem; font-weight: 600; transition: color .15s; }
+.notes p { color: var(--muted); font-size: var(--s-sm); margin-top: 6px; }
+@media (max-width: 480px) { .notes a.row { grid-template-columns: 1fr; gap: 4px; } }
+
+/* Side column */
+.side { display: grid; gap: 40px; }
+.now-card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 24px; display: grid; gap: 14px; }
+.now-card h2 { font-size: var(--s-lg); }
+.now-card ul { margin: 0; padding-left: 18px; display: grid; gap: 8px; color: var(--text); font-size: var(--s-sm); }
+.now-card ul li::marker { color: var(--accent); }
+.now-card .stamp { font-family: var(--mono); font-size: var(--s-xs); color: var(--muted); }
+blockquote { margin: 0; display: grid; gap: 12px; }
+blockquote p { font-family: var(--display); font-size: 1.3125rem; line-height: 1.35; font-weight: 400; }
+blockquote footer { font-size: var(--s-sm); color: var(--muted); }
+
+/* Photo tiles (placeholders for real photos) */
+.ph { position: relative; border-radius: 10px; overflow: hidden; aspect-ratio: 4 / 3; max-width: 100%; border: 1px solid var(--line); }
+.ph::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 55%, rgba(8,10,15,.85)); }
+.ph figcaption { position: absolute; left: 14px; right: 14px; bottom: 12px; z-index: 1; display: flex; justify-content: space-between; gap: 8px; font-size: var(--s-sm); font-weight: 500; }
+.ph figcaption span { font-family: var(--mono); font-size: var(--s-xs); color: var(--warm); font-weight: 400; }
+figure { margin: 0; }
+.g1 { background: radial-gradient(120% 90% at 20% 15%, #4a4a4a, transparent 60%), linear-gradient(160deg, #1f1f1f, #080808); }
+.g2 { background: radial-gradient(90% 80% at 80% 20%, #6b5a1e, transparent 55%), linear-gradient(200deg, #262626, #0a0a0a); }
+.g3 { background: radial-gradient(100% 70% at 50% 100%, #3d3d3d, transparent 60%), linear-gradient(180deg, #1a1a1a, #050505); }
+.g4 { background: radial-gradient(80% 80% at 30% 30%, #555555, transparent 55%), linear-gradient(140deg, #222222, #070707); }
+.g5 { background: radial-gradient(110% 80% at 70% 70%, #5c4d14, transparent 55%), linear-gradient(120deg, #242424, #0a0a0a); }
+.g6 { background: radial-gradient(100% 90% at 10% 90%, #474747, transparent 55%), linear-gradient(30deg, #1c1c1c, #060606); }
+.strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 700px) { .strip { grid-template-columns: 1fr 1fr; } .strip figure:last-child { display: none; } }
+
+.g7 { background: radial-gradient(90% 70% at 60% 30%, #6b6b6b, transparent 55%), linear-gradient(170deg, #2a2a2a, #050505); }
+.g8 { background: radial-gradient(100% 80% at 30% 80%, #4f4318, transparent 55%), linear-gradient(210deg, #1e1e1e, #080808); }
+
+/* Photo grid, after tiffanykt.photography/places: three wide frames, tight gaps, place name on hover */
+.photo-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 560px) { .qb-in { grid-template-columns: 1fr; } }
+@media (max-width: 760px) { .photo-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 480px) { .photo-grid { grid-template-columns: 1fr; } }
+.photo-grid a { all: unset; position: relative; display: block; width: 100%; cursor: pointer; overflow: hidden; }
+.photo-grid img { display: block; width: 100%; max-width: 100%; aspect-ratio: 3 / 2; object-fit: cover; background: var(--panel); transition: transform .6s ease; }
+.photo-grid .place { position: absolute; inset: 0; display: grid; place-items: center; padding: 16px; text-align: center; background: rgba(0, 0, 0, .45); color: #fff; font-family: var(--display); font-weight: 600; font-size: var(--s-md); letter-spacing: .06em; text-transform: uppercase; opacity: 0; transition: opacity .3s ease; }
+.photo-grid a:hover .place, .photo-grid a:focus-visible .place { opacity: 1; }
+.photo-grid a:hover img { transform: scale(1.03); }
+.photo-grid a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (hover: none) { .photo-grid .place { opacity: 1; background: linear-gradient(transparent 55%, rgba(0, 0, 0, .7)); place-items: end start; font-size: var(--s-sm); } }
+
+/* Large view when a photo is clicked: photo on the left, its story on the right */
+dialog.lightbox { padding: 0; border: 1px solid var(--line); background: var(--ink); color: var(--text); width: min(1320px, calc(100vw - 32px)); max-height: calc(100vh - 32px); overflow: auto; }
+.lb-top { position: sticky; top: 0; height: 0; z-index: 5; }
+.lb-x { position: absolute; top: 12px; right: 12px; width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--line); background: rgba(0, 0, 0, .75); color: var(--text); font-size: 1rem; line-height: 1; cursor: pointer; display: grid; place-items: center; padding: 0; }
+.lb-x:hover { border-color: var(--accent); color: var(--accent); }
+dialog.lightbox::backdrop { background: rgba(0, 0, 0, .92); }
+.lb-in { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(280px, 1fr); }
+.lb-photo { background: #050505; display: grid; place-items: center; min-height: 0; }
+.lb-photo img { display: block; width: 100%; max-height: calc(100vh - 34px); object-fit: contain; }
+.lb-text { display: grid; grid-template-rows: auto 1fr auto; gap: 18px; padding: 40px 36px 28px; min-width: 0; max-height: calc(100vh - 34px); overflow-y: auto; }
+.lb-photo { position: sticky; top: 0; }
+.lb-where { font-size: var(--s-sm); color: var(--muted); }
+.lb-where b { color: var(--text); font-weight: 600; }
+.lb-story { display: grid; gap: 14px; align-content: start; line-height: 1.75; max-width: 52ch; }
+.lb-story.empty { color: var(--muted); font-style: italic; }
+.lb-ctrl { display: flex; justify-content: space-between; align-items: center; gap: 16px; border-top: 1px solid var(--line); padding-top: 18px; font-family: var(--nav); font-size: var(--s-sm); color: var(--muted); }
+.lb-ctrl div { display: flex; gap: 20px; }
+.lb-ctrl button { all: unset; cursor: pointer; color: var(--text); }
+.lb-ctrl button:hover { color: var(--accent); }
+.lb-ctrl button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+@media (max-width: 860px) { .lb-in { grid-template-columns: 1fr; } .lb-photo { position: static; } .lb-photo img { max-height: 60vh; } .lb-text { padding: 24px 20px; max-height: none; overflow: visible; } }
+
+/* Article */
+article.post { display: grid; gap: 28px; }
+article.post h1 { font-size: clamp(2rem, 5vw, 2.75rem); line-height: 1.1; font-weight: 600; }
+article.post .meta { font-family: var(--mono); font-size: var(--s-xs); color: var(--muted); display: flex; gap: 16px; flex-wrap: wrap; }
+article.post .body { display: grid; gap: 20px; font-size: 1.125rem; line-height: 1.75; }
+article.post .body h2 { font-size: var(--s-lg); margin-top: 12px; }
+article.post .pull { border-left: 2px solid var(--accent); padding-left: 20px; font-family: var(--display); font-size: 1.375rem; line-height: 1.4; color: var(--text); }
+
+/* About and Now */
+.about { display: grid; max-width: 680px; }
+
+.prose { display: grid; gap: 18px; font-size: 1.125rem; line-height: 1.75; }
+.facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 10px 24px; font-size: var(--s-sm); border-top: 1px solid var(--line); padding-top: 20px; }
+.facts dt { font-family: var(--mono); font-size: var(--s-xs); color: var(--muted); padding-top: 3px; }
+.facts dd { margin: 0; }
+.now-list { display: grid; gap: 0; border-top: 1px solid var(--line); }
+.now-row { display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 24px; padding-block: 22px; border-bottom: 1px solid var(--line); }
+.now-row h3 { font-family: var(--mono); font-size: var(--s-xs); color: var(--accent); font-weight: 500; padding-top: 4px; }
+@media (max-width: 520px) { .now-row { grid-template-columns: 1fr; gap: 6px; } }
+
+/* Quotes */
+.quotes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.quote { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 28px; display: grid; gap: 18px; align-content: space-between; }
+.quote p { font-family: var(--display); font-size: 1.25rem; line-height: 1.4; }
+.quote .src { font-size: var(--s-sm); color: var(--muted); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.quote .src a, .quote-band footer a { color: inherit; border-bottom: 1px solid currentColor; }
+.quote .src a:hover, .quote-band footer a:hover { color: var(--accent); text-decoration: none; }
+.quote-band footer a:hover { color: var(--ink); border-bottom-width: 2px; }
+.quote .src time { font-family: var(--mono); font-size: var(--s-xs); }
+@media (max-width: 680px) { .quotes { grid-template-columns: 1fr; } }
+
+/* Style guide */
+.swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; }
+.sw { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--panel); }
+.sw .chip { height: 84px; }
+.sw div.lbl { padding: 12px 14px; display: grid; gap: 2px; }
+.sw b { font-weight: 600; font-size: var(--s-sm); }
+.sw code { font-family: var(--mono); font-size: var(--s-xs); color: var(--muted); }
+.typescale { display: grid; gap: 0; border-top: 1px solid var(--line); }
+.typescale > div { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 24px; padding-block: 18px; border-bottom: 1px solid var(--line); align-items: baseline; }
+.typescale .k { font-family: var(--mono); font-size: var(--s-xs); color: var(--muted); }
+@media (max-width: 520px) { .typescale > div { grid-template-columns: 1fr; gap: 4px; } }
+/* Contact */
+.contact { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 64px; align-items: start; }
+@media (max-width: 820px) { .contact { grid-template-columns: 1fr; gap: 40px; } }
+.contact-intro { display: grid; gap: 20px; }
+.contact-intro h1 { font-size: var(--s-2xl); line-height: 1.05; font-weight: 600; }
+.contact-intro .elsewhere { display: flex; gap: 20px; font-size: var(--s-sm); }
+.cform { display: grid; gap: 36px; }
+.field { display: grid; gap: 10px; }
+.field label, .field legend { font-family: var(--display); font-size: var(--s-lg); font-weight: 600; padding: 0; }
+.field .hint { color: var(--muted); font-size: var(--s-sm); }
+.field input, .field textarea { font: inherit; font-size: 1.125rem; color: var(--text); background: transparent; border: 0; border-bottom: 1px solid var(--line); padding: 10px 0; width: 100%; border-radius: 0; transition: border-color .2s; }
+.field textarea { min-height: 150px; resize: vertical; line-height: 1.6; }
+.field input::placeholder, .field textarea::placeholder { color: #5c5c5c; }
+.field input:focus, .field textarea:focus { outline: none; border-bottom-color: var(--accent); }
+fieldset.field { border: 0; margin: 0; padding: 0; min-width: 0; }
+.moods { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+.moods button { font: 500 var(--s-sm) var(--nav); color: var(--text); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 9px 16px; cursor: pointer; transition: border-color .2s, color .2s, background .2s; }
+.moods button:hover { border-color: var(--accent); color: var(--accent); }
+.moods button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--ink); }
+.moods button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.cform .err { color: var(--accent); font-size: var(--s-sm); min-height: 1.2em; }
+.cform .send { justify-self: start; font: 600 var(--s-md) var(--nav); color: var(--ink); background: var(--accent); border: 0; border-radius: 999px; padding: 14px 28px; cursor: pointer; transition: transform .2s; }
+.cform .send:hover { transform: translateX(4px); }
+.cform .send:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+.thanks { display: grid; gap: 16px; padding-top: 8px; }
+.thanks h2 { font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.1; font-weight: 600; }
+.thanks p { color: var(--muted); line-height: 1.7; max-width: 52ch; }
+.thanks button { all: unset; cursor: pointer; color: var(--accent); font-size: var(--s-sm); }
+.preview-note { font-size: var(--s-sm); color: var(--muted); border-left: 2px solid var(--line); padding-left: 12px; }
+.btns { display: flex; flex-wrap: wrap; gap: 12px; }
+.btn { font: 500 var(--s-sm) var(--body); border-radius: 999px; padding: 10px 18px; border: 1px solid var(--line); background: transparent; color: var(--text); cursor: pointer; }
+.btn.primary { background: var(--accent); color: var(--ink); border-color: var(--accent); }
+.btn:hover { border-color: var(--accent); }
+
+footer.site { margin-top: 120px; border-top: 1px solid var(--line); padding-top: 56px; display: grid; gap: 56px; }
+.foot-top { display: flex; justify-content: space-between; align-items: end; gap: 32px 48px; flex-wrap: wrap; }
+.foot-cta { display: grid; gap: 10px; }
+.foot-cta span { color: var(--muted); font-size: var(--s-sm); }
+.foot-cta a { font-family: var(--display); font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 600; line-height: 1.05; letter-spacing: -.02em; color: var(--text); }
+.foot-cta a:hover { color: var(--accent); text-decoration: none; }
+.foot-links { display: flex; gap: 28px; flex-wrap: wrap; font-family: var(--nav); font-size: var(--s-md); }
+.foot-links a { color: var(--text); }
+.foot-links a:hover { color: var(--accent); text-decoration: none; }
+.foot-base { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-top: 20px; border-top: 1px solid var(--line); font-size: var(--s-sm); color: var(--muted); }
+.foot-base a { color: var(--muted); }
+.foot-base a:hover { color: var(--accent); text-decoration: none; }
+.to-top { all: unset; cursor: pointer; color: var(--muted); }
+.to-top:hover { color: var(--accent); }
+.to-top:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  section.page:not([hidden]) { animation: rise .35s ease-out; }
+  @keyframes rise { from { transform: translateY(8px); } to { transform: none; } }
+}
+
+/* Sections added in the admin */
+.blocks { display: grid; gap: 36px; margin-top: 56px; }
+.blocks:empty { display: none; }
+.blk { display: grid; gap: 14px; min-width: 0; }
+.blk[data-align="center"] { text-align: center; justify-items: center; }
+.blk-h { font-family: var(--display); font-weight: 600; line-height: 1.12; letter-spacing: -.02em; text-wrap: balance; }
+h2.blk-h { font-size: clamp(1.7rem, 3.6vw, 2.4rem); }
+h3.blk-h { font-size: var(--s-lg); }
+.blk-text { display: grid; gap: 16px; font-size: 1.0625rem; line-height: 1.75; max-width: 68ch; }
+.blk-text h3 { font-family: var(--display); font-size: var(--s-lg); line-height: 1.2; margin-top: 8px; }
+.blk-text .pull { border-left: 2px solid var(--accent); padding-left: 20px; font-family: var(--display); font-size: 1.25rem; line-height: 1.4; }
+.blk[data-align="center"] .blk-text .pull { border-left: 0; padding-left: 0; }
+.blk-text a, .b-quote a { color: var(--accent); }
+.blk-fig { margin: 0; display: grid; gap: 10px; width: 100%; }
+.blk-fig img { width: 100%; height: auto; border-radius: 12px; display: block; background: #111; }
+.blk-fig figcaption { color: var(--muted); font-size: var(--s-xs); }
+.blk-fig.sz-medium { width: min(100%, 640px); } .blk-fig.sz-small { width: min(100%, 360px); }
+.blk[data-align="center"] .blk-fig { justify-self: center; }
+.b-gallery { grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr)); gap: 12px; }
+.b-gallery img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 10px; display: block; background: #111; }
+.vid { position: relative; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; background: #111; width: 100%; }
+.vid iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.b-button a { display: inline-block; padding: 12px 24px; border-radius: 999px; font-weight: 600; border: 1px solid var(--accent); }
+.b-button a.primary { background: var(--accent); color: #000; }
+.b-button a.outline { color: var(--accent); }
+.b-button a:hover { text-decoration: none; opacity: .85; }
+.b-quote blockquote { margin: 0; display: grid; gap: 10px; border-left: 2px solid var(--accent); padding-left: 22px; }
+.b-quote blockquote p { font-family: var(--display); font-size: 1.5rem; line-height: 1.3; }
+.b-quote footer { color: var(--muted); font-size: var(--s-sm); }
+.b-columns { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; align-items: center; }
+.b-columns.rev .col-img { order: 2; }
+.b-columns img { width: 100%; height: auto; border-radius: 12px; display: block; background: #111; }
+.b-list ul, .b-list ol { margin: 0; padding-left: 1.3em; display: grid; gap: 8px; font-size: 1.0625rem; line-height: 1.6; max-width: 68ch; }
+.b-embed iframe { width: 100%; border: 0; border-radius: 12px; background: #111; }
+.b-divider hr { border: 0; border-top: 1px solid var(--line); width: 100%; margin: 0; }
+@media (max-width: 680px) { .b-columns, .b-gallery { grid-template-columns: 1fr; } .b-columns.rev .col-img { order: 0; } }
+
+/* Companies I have worked with (About page) */
+.clients { margin-top: 80px; }
+.clients-head { display: flex; flex-direction: column; align-items: center; gap: 16px; margin-bottom: 34px; text-align: center; }
+.clients-head::before { content: ""; width: 28px; height: 2px; background: var(--accent); }
+.clients-head h2 { font-family: var(--display); font-size: clamp(1.5rem, 3.4vw, 2.1rem); font-weight: 600; letter-spacing: -.02em; line-height: 1.15; color: var(--text); text-wrap: balance; }
+.clients-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+.clients-grid li { border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.client { position: relative; display: grid; gap: 14px; place-items: center; align-content: center; min-height: 140px; padding: 30px 26px; color: #b9b9b9; transition: color .3s ease; }
+.client, .client:hover, .client:focus { -webkit-tap-highlight-color: transparent; text-decoration: none; }
+/* Yellow on hover (mouse), and also when pressed or focused, which is what a finger does on a phone */
+@media (hover: hover) { .client:hover { color: var(--accent); text-decoration: none; } .client:hover::after { transform: scaleX(1); } .client:hover small { color: var(--accent); } }
+.client:active, .client:focus-visible { color: var(--accent); text-decoration: none; transition-duration: .08s; }
+.client:active::after, .client:focus-visible::after { transform: scaleX(1); transition-duration: .15s; }
+.client:active small, .client:focus-visible small { color: var(--accent); }
+.client::after { content: ""; position: absolute; left: 26px; right: 26px; bottom: 0; height: 2px; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform .4s cubic-bezier(.2, .7, .2, 1); }
+/* No hover on a phone, so a short centred yellow line stays under each logo, and grows when pressed */
+@media (hover: none) {
+  .client::after { transform-origin: center; transform: scaleX(.14); }
+  .client { min-height: 124px; padding-block: 24px; }
+}
+.client:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.client-logo { position: relative; display: block; height: 38px; }
+.client-logo img { display: block; height: 100%; width: auto; max-width: min(100%, 210px); visibility: hidden; }
+.client-logo { max-width: 100%; }
+.client-logo .ink { position: absolute; inset: 0; background: currentColor; -webkit-mask-size: contain; mask-size: contain; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center; }
+.client .wordmark { font-family: var(--display); font-weight: 600; font-size: 1.6rem; letter-spacing: -.02em; line-height: 38px; }
+.client small { font-family: var(--nav); font-size: .6875rem; letter-spacing: .16em; text-transform: uppercase; color: #6c6c6c; transition: color .3s ease; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap nav">
+    <a class="brand" href="#home" id="brand">My site</a>
+    <ul id="menu"></ul>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- HOME -->
+  <section class="page" id="p-home">
+    <div class="hero">
+      <h1 id="home-h1"></h1>
+      <p class="lede" id="home-lede"></p>
+    </div>
+
+    <div class="home-block">
+      <div class="block-title"><h2 id="home-writing-title"></h2><a href="#writing" id="home-writing-link"></a></div>
+      <ul class="index" id="home-writing"></ul>
+    </div>
+
+    <div class="home-block">
+      <div class="block-title"><h2 id="home-photos-title"></h2><a href="#photos" id="home-photos-link"></a></div>
+      <ul class="photo-grid home-photos" id="home-photos"></ul>
+    </div>
+
+    <section class="quote-band" aria-label="A quote I keep">
+      <div class="qb-in">
+        <span class="qb-label" id="qb-label"></span>
+        <blockquote>
+          <p id="qb-text"></p>
+          <footer id="qb-by"></footer>
+        </blockquote>
+        <a href="#quotes" id="qb-link"></a>
+      </div>
+    </section>
+  <div class="blocks" id="blocks-home"></div>
+  </section>
+
+  <!-- WRITING -->
+  <section class="page" id="p-writing" hidden>
+    <div class="hero">
+      <h1 id="writing-h1"></h1>
+      <p class="lede" id="writing-lede"></p>
+    </div>
+    <ul class="index" id="writing-list"></ul>
+  <div class="blocks" id="blocks-writing"></div>
+  </section>
+
+  <!-- ARTICLE -->
+  <section class="page" id="p-post" hidden>
+    <article class="post read">
+      <a href="#writing" id="post-back">Back</a>
+      <h1 id="post-title"></h1>
+      <div class="meta" id="post-meta"></div>
+      <div class="body" id="post-body"></div>
+    </article>
+  </section>
+
+  <!-- PHOTOS -->
+  <section class="page" id="p-photos" hidden>
+    <div class="hero">
+      <h1 id="photos-h1"></h1>
+    </div>
+    <ul class="photo-grid" id="photo-grid"></ul>
+  <div class="blocks" id="blocks-photos"></div>
+  </section>
+
+  <dialog class="lightbox" id="lightbox" aria-label="Photo and story">
+    <div class="lb-top"><button type="button" class="lb-x" id="lb-x" aria-label="Close photo">&#10005;</button></div>
+    <div class="lb-in">
+      <div class="lb-photo"><img id="lb-img" alt=""></div>
+      <div class="lb-text">
+        <p class="lb-where" id="lb-title"></p>
+        <div class="lb-story" id="lb-story"></div>
+        <div class="lb-ctrl">
+          <span id="lb-count"></span>
+          <div><button type="button" id="lb-prev">prev</button><button type="button" id="lb-next">next</button><button type="button" id="lb-close">close</button></div>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- CONTACT -->
+  <section class="page" id="p-contact" hidden>
+    <div class="contact">
+      <div class="contact-intro">
+        <h1 id="contact-h1"></h1>
+        <p class="lede" id="contact-intro"></p>
+        <div class="elsewhere" id="contact-social"></div>
+      </div>
+
+      <div>
+        <form class="cform" id="cform" novalidate>
+          <div class="field">
+            <label for="c-name">What should I call you?</label>
+            <input id="c-name" name="name" type="text" autocomplete="name" placeholder="Your name">
+          </div>
+          <div class="field">
+            <label for="c-email">Where can I write back?</label>
+            <input id="c-email" name="email" type="email" autocomplete="email" placeholder="you@example.com">
+          </div>
+          <fieldset class="field">
+            <legend>What brings you here?</legend>
+            <div class="moods" id="moods">
+              <button type="button" data-mood="idea" aria-pressed="true">I have an idea</button>
+              <button type="button" data-mood="work" aria-pressed="false">Let's work together</button>
+              <button type="button" data-mood="ask" aria-pressed="false">A marketing question</button>
+              <button type="button" data-mood="photo" aria-pressed="false">About a photo</button>
+              <button type="button" data-mood="hello" aria-pressed="false">Just saying hi</button>
+            </div>
+          </fieldset>
+          <div class="field">
+            <label for="c-msg" id="c-msg-label">Tell me the idea in a few lines.</label>
+            <textarea id="c-msg" name="message" placeholder="It starts with..."></textarea>
+          </div>
+          <p class="err" id="c-err" aria-live="polite"></p>
+          <button class="send" type="submit">Send it my way &#8594;</button>
+        </form>
+
+        <div class="thanks" id="c-thanks" hidden>
+          <h2 id="c-thanks-title">Thank you.</h2>
+          <p>Your note is on its way. I read every message myself and usually reply within a couple of days.</p>
+          <p class="preview-note">Preview only. Nothing was sent. Add a Web3Forms access key in the admin (Pages and text, Contact) to receive messages.</p>
+          <button type="button" id="c-again">Write another note</button>
+        </div>
+      </div>
+    </div>
+  <div class="blocks" id="blocks-contact"></div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="page" id="p-about" hidden>
+    <div class="about">
+      <div class="prose">
+        <h1 id="about-h1" style="font-size: var(--s-2xl); line-height: 1.05; font-weight: 600;"></h1>
+        <div id="about-paras" style="display: contents;"></div>
+        <dl class="facts" id="about-facts"></dl>
+      </div>
+    </div>
+  <section class="clients" id="clients" hidden>
+      <div class="clients-head"><h2 id="clients-title"></h2></div>
+      <ul class="clients-grid" id="clients-list"></ul>
+    </section>
+  <div class="blocks" id="blocks-about"></div>
+  </section>
+
+  <!-- QUOTES -->
+  <section class="page" id="p-quotes" hidden>
+    <div class="hero">
+      <h1 id="quotes-h1"></h1>
+    </div>
+    <div class="quotes" id="quotes-list"></div>
+  <div class="blocks" id="blocks-quotes"></div>
+  </section>
+
+  <!-- CUSTOM PAGE -->
+  <section class="page" id="p-custom" hidden>
+    <div class="hero" id="custom-hero"><h1 id="custom-title"></h1></div>
+    <div class="blocks custom" id="blocks-custom"></div>
+  </section>
+
+  <footer class="site">
+    <div class="foot-top">
+      <div class="foot-cta">
+        <span id="foot-prompt"></span>
+        <a href="#contact" id="foot-cta"></a>
+      </div>
+      <nav class="foot-links" aria-label="Elsewhere" id="foot-links"></nav>
+    </div>
+    <div class="foot-base">
+      <span id="foot-copy"></span>
+      <button type="button" class="to-top" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })">Back to top &#8593;</button>
+    </div>
+  </footer>
+</main>
+
+<script type="module">
+// Content lives in content/*.json so it can be edited without touching code.
+// Preview mode (used by the admin): show unsaved edits that the admin passes in through sessionStorage.
+const preview = new URLSearchParams(location.search).has("preview");
+let PV = null;
+if (preview) { try { PV = JSON.parse(sessionStorage.getItem("previewData")); } catch {} }
+const load = f => PV && PV[f] ? Promise.resolve(PV[f]) : fetch("content/" + f + ".json").then(r => r.json());
+const mimeOf = p => /\.svg$/i.test(p) ? "image/svg+xml" : /\.png$/i.test(p) ? "image/png" : /\.webp$/i.test(p) ? "image/webp" : "image/jpeg";
+const imgSrc = p => PV && PV.__images && PV.__images[p] ? `data:${mimeOf(p)};base64,` + PV.__images[p] : p;
+const [PHOTOS, WRITING, QUOTES, SITE, PAGESDATA] = await Promise.all([load("photos"), load("writing"), load("quotes"), load("site"), load("pages")]);
+const SITE_NAME = (SITE.brand || "").trim() || "My site";
+
+// Content files can be edited by several people, so text is escaped and links are checked.
+const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const webHref = u => /^https?:\/\//i.test(u || "") ? u : "#";
+// ---------- Tracking (Google Analytics). Only on the live site, and only when an ID is set in the admin. ----------
+const GA_ID = ((SITE.analytics && SITE.analytics.gaId) || "").trim();
+const tracking = !preview && /^G-[A-Z0-9]{4,}$/i.test(GA_ID);
+if (tracking) {
+  const gs = document.createElement("script"); gs.async = true; gs.src = "https://www.googletagmanager.com/gtag/js?id=" + encodeURIComponent(GA_ID); document.head.append(gs);
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function () { window.dataLayer.push(arguments); };
+  gtag("js", new Date()); gtag("config", GA_ID, { send_page_view: false });
+}
+// Each page, photo and article counts as its own page in the reports: /photo/skawina-poland, /article/..., /writing
+function trackPage() {
+  if (!tracking) return;
+  let path = "/" + location.hash.replace(/^#/, "");
+  if (path === "/home") path = "/";
+  gtag("event", "page_view", { page_title: document.title, page_location: location.origin + path + location.search, page_path: path });
+}
+if (tracking) document.addEventListener("click", e => {
+  const a = e.target.closest("a"); if (!a || !a.href) return;
+  const text = (a.textContent || "").trim().slice(0, 80);
+  if (a.origin && a.origin !== location.origin) gtag("event", "click", { link_url: a.href, link_text: text, outbound: true });
+  else if (a.closest(".b-button")) gtag("event", "button_click", { link_url: a.getAttribute("href"), link_text: text });
+});
+
+
+// Newest first. Home shows the first three automatically.
+// place shows on hover over the photo; caption (optional) replaces it in the story view.
+
+const photoKey = (p, i) => p.slug || String(i);
+function photoTiles(list) {
+  return list.map((p, i) =>
+    `<li><a href="#photo/${esc(photoKey(p, PHOTOS.indexOf(p)))}" aria-label="Open photo from ${esc(p.place)}"><img src="${esc(imgSrc(p.img))}" alt="${esc(p.place)}" loading="lazy"><span class="place">${esc(p.place)}</span></a></li>`).join("");
+}
+document.getElementById("photo-grid").innerHTML = photoTiles(PHOTOS);
+document.getElementById("home-photos").innerHTML = photoTiles(PHOTOS.slice(0, 3));
+const lb = document.getElementById("lightbox");
+let cur = 0, pushed = false;
+// Each photo's story is a list of paragraphs. Leave it empty until the story is written.
+function showPhoto(i) {
+  cur = (i + PHOTOS.length) % PHOTOS.length;
+  const p = PHOTOS[cur];
+  document.getElementById("lb-img").src = imgSrc(p.img);
+  document.getElementById("lb-img").alt = p.place;
+  const where = document.getElementById("lb-title");
+  where.textContent = "";
+  const b = document.createElement("b"); b.textContent = p.caption || p.place;
+  where.append(b, ` · ${p.when}`);
+  const st = document.getElementById("lb-story");
+  st.classList.toggle("empty", !p.story.length);
+  st.textContent = "";
+  (p.story.length ? p.story : ["The story behind this photo is coming soon."]).forEach(x => { const para = document.createElement("p"); para.textContent = x; st.append(para); });
+  document.getElementById("lb-count").textContent = `${cur + 1} of ${PHOTOS.length}`;
+  document.title = (p.caption || p.place) + " | " + SITE_NAME;
+}
+// Opens a photo and puts its own address in the address bar. fromLink is true when someone followed a link to it.
+function openPhoto(i, fromLink) {
+  showPhoto(i);
+  if (!lb.open) { lb.showModal(); pushed = !!fromLink; }
+  const h = "#photo/" + photoKey(PHOTOS[cur], cur);
+  if (location.hash !== h) history.replaceState(null, "", h);
+  trackPage();
+}
+// Runs when the pop-up closes, however that happened (buttons, Escape, a click outside, or the Back button).
+let closing = false;
+function onClosed() {
+  if (closing) return;
+  document.title = SITE_NAME;
+  if (!location.hash.startsWith("#photo/")) return;
+  closing = true;
+  if (pushed && history.length > 1) { pushed = false; history.back(); } else { history.replaceState(null, "", "#photos"); closing = false; }
+}
+function closePhoto() { if (lb.open) lb.close(); onClosed(); }
+lb.addEventListener("close", onClosed);
+document.getElementById("lb-prev").addEventListener("click", () => openPhoto(cur - 1));
+document.getElementById("lb-next").addEventListener("click", () => openPhoto(cur + 1));
+document.getElementById("lb-close").addEventListener("click", closePhoto);
+document.getElementById("lb-x").addEventListener("click", closePhoto);
+lb.addEventListener("click", e => { if (e.target === lb) closePhoto(); });
+lb.addEventListener("keydown", e => { if (e.key === "ArrowRight") openPhoto(cur + 1); if (e.key === "ArrowLeft") openPhoto(cur - 1); });
+
+
+const PUB_NAME = { site: "This site" };
+function fmtDate(iso) { return new Date(iso + "T00:00:00").toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }); }
+function writingRows(list) {
+  return `<li class="head" aria-hidden="true"><span>Year</span><span>Title</span><span>Published on</span><span></span></li>` + list.map(w =>
+    w.pub === "site"
+      ? `<li><a href="#article/${esc(w.slug)}"><time datetime="${esc(w.d)}" title="${esc(fmtDate(w.d))}">${esc(w.d.slice(0, 4))}</time><h3>${esc(w.t)}</h3><span class="site">${PUB_NAME.site}</span><span class="arr">&#8594;</span></a></li>`
+      : `<li><a href="${esc(webHref(w.u))}" target="_blank" rel="noopener"><time datetime="${esc(w.d)}" title="${esc(fmtDate(w.d))}">${esc(w.d.slice(0, 4))}</time><h3>${esc(w.t)}</h3><span class="site">${esc(PUB_NAME[w.pub] || w.pub)}</span><span class="arr">&#8599;</span></a></li>`).join("");
+}
+// Newest first, so a new article added anywhere in WRITING shows up on Home automatically
+const WRITING_SORTED = [...WRITING].sort((a, b) => b.d.localeCompare(a.d));
+document.getElementById("writing-list").innerHTML = writingRows(WRITING_SORTED);
+document.getElementById("home-writing").innerHTML = writingRows(WRITING_SORTED.slice(0, 3));
+
+
+// Contact form. Messages go through Web3Forms to the email the access key was created for.
+// The key is set in the admin under Site settings, Contact page. With no key the form only previews.
+const FORM_KEY = (SITE.contact.formKey || "").trim();
+const FORM_ENDPOINT = FORM_KEY && !preview ? "https://api.web3forms.com/submit" : "";
+const MOODS = {
+  idea: ["Tell me the idea in a few lines.", "It starts with..."],
+  work: ["What are you working on?", "The project, the timeline, and where I fit in..."],
+  ask: ["Ask away.", "I have been wondering about..."],
+  photo: ["Which photo caught your eye?", "The one from..."],
+  hello: ["Say anything.", "Hi there..."]
+};
+let mood = "idea";
+document.getElementById("moods").addEventListener("click", e => {
+  const b = e.target.closest("button[data-mood]");
+  if (!b) return;
+  mood = b.dataset.mood;
+  document.querySelectorAll("#moods button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+  document.getElementById("c-msg-label").textContent = MOODS[mood][0];
+  document.getElementById("c-msg").placeholder = MOODS[mood][1];
+});
+document.getElementById("cform").addEventListener("submit", async e => {
+  e.preventDefault();
+  const name = document.getElementById("c-name").value.trim();
+  const email = document.getElementById("c-email").value.trim();
+  const msg = document.getElementById("c-msg").value.trim();
+  const err = document.getElementById("c-err");
+  if (!name) { err.textContent = "Add your name so I know who is writing."; return document.getElementById("c-name").focus(); }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err.textContent = "Add an email address so I can write back."; return document.getElementById("c-email").focus(); }
+  if (!msg) { err.textContent = "Write a few words before sending."; return document.getElementById("c-msg").focus(); }
+  err.textContent = "";
+  if (FORM_ENDPOINT) {
+    try {
+      const r = await fetch(FORM_ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify({ access_key: FORM_KEY, subject: `New note on your site from ${name} (${mood})`, from_name: name, name, email, topic: mood, message: msg }) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok || j.success === false) throw new Error();
+    } catch { err.textContent = "That did not go through. Please try again in a moment."; return; }
+  }
+  if (tracking) gtag("event", "generate_lead", { topic: mood });
+  document.getElementById("c-thanks-title").textContent = `Thank you, ${name}.`;
+  document.querySelector(".preview-note").hidden = !!FORM_ENDPOINT;
+  document.getElementById("cform").hidden = true;
+  document.getElementById("c-thanks").hidden = false;
+});
+document.getElementById("c-again").addEventListener("click", () => {
+  document.getElementById("cform").reset();
+  document.getElementById("c-thanks").hidden = true;
+  document.getElementById("cform").hidden = false;
+});
+
+function readingTime(n) { return Math.max(1, Math.round((n.body || []).join(" ").split(/\s+/).length / 200)); }
+function renderEntry(n, meta, back) {
+  document.title = n.t + " | " + SITE_NAME;
+  document.getElementById("post-title").textContent = n.t;
+  const bk = document.getElementById("post-back"); bk.href = back[0]; bk.textContent = back[1];
+  const m = document.getElementById("post-meta"); m.textContent = "";
+  meta.filter(Boolean).forEach(v => { const e = document.createElement("span"); e.textContent = v; m.append(e); });
+  const body = document.getElementById("post-body"); body.textContent = "";
+  (n.body && n.body.length ? n.body : [n.x]).forEach(b => {
+    const pull = b.startsWith("> "), h = b.startsWith("## ");
+    const e = document.createElement(h ? "h2" : "p");
+    if (pull) e.className = "pull";
+    e.textContent = h ? b.slice(3) : pull ? b.slice(2) : b;
+    body.append(e);
+  });
+}
+function renderArticle(slug) {
+  const w = WRITING.find(x => x.slug === slug && x.pub === "site");
+  if (!w) { location.hash = "#writing"; return; }
+  renderEntry(w, [fmtDate(w.d), readingTime(w) + " min read"], ["#writing", "Back to writing"]);
+}
+
+// Quotes. Newest first. Each can link to the person or page where it was read.
+const QUOTES_SORTED = [...QUOTES].sort((a, b) => b.d.localeCompare(a.d));
+function authorNode(q) {
+  if (!q.u) return document.createTextNode(q.a);
+  const a = document.createElement("a");
+  a.href = q.u; a.target = "_blank"; a.rel = "noopener"; a.textContent = q.a + " \u2197";
+  return a;
+}
+const qList = document.getElementById("quotes-list");
+QUOTES_SORTED.forEach(q => {
+  const box = document.createElement("div"); box.className = "quote";
+  const p = document.createElement("p"); p.textContent = q.q;
+  const src = document.createElement("div"); src.className = "src";
+  const who = document.createElement("span"); who.append(authorNode(q));
+  const t = document.createElement("time"); t.textContent = q.d.split("-").reverse().join(".");
+  src.append(who, t); box.append(p, src); qList.append(box);
+});
+if (QUOTES_SORTED.length) {
+  document.getElementById("qb-text").textContent = QUOTES_SORTED[0].q;
+  document.getElementById("qb-by").append(authorNode(QUOTES_SORTED[0]));
+}
+
+// Menu, About, Contact and footer come from content/site.json
+const isWeb = u => /^https?:\/\//.test(u || "");
+function mkLink(l, arrow) {
+  const a = document.createElement("a");
+  a.href = l.url; a.textContent = l.label + (arrow && isWeb(l.url) ? " \u2197" : "");
+  if (isWeb(l.url)) { a.target = "_blank"; a.rel = "noopener"; }
+  return a;
+}
+// Words written in [square brackets] are shown in the yellow highlight.
+const setText = (id, t) => {
+  const e = document.getElementById(id); e.textContent = "";
+  String(t || "").split(/(\[[^\]]+\])/).forEach(part => {
+    if (/^\[[^\]]+\]$/.test(part)) { const em = document.createElement("em"); em.textContent = part.slice(1, -1); e.append(em); }
+    else if (part) e.append(part);
+  });
+};
+const menu = document.getElementById("menu");
+SITE.nav.forEach(n => {
+  const li = document.createElement("li"), a = document.createElement("a"), roll = document.createElement("span");
+  a.href = n.url; roll.className = "roll";
+  const front = document.createElement("span"), back = document.createElement("span");
+  front.textContent = back.textContent = n.label; back.setAttribute("aria-hidden", "true");
+  roll.append(front, back); a.append(roll);
+  if (isWeb(n.url)) { a.target = "_blank"; a.rel = "noopener"; }
+  li.append(a); menu.append(li);
+});
+const PG = SITE.pages;
+setText("brand", SITE.brand);
+setText("home-h1", PG.home.heading); setText("home-lede", PG.home.lede);
+setText("home-writing-title", PG.home.writingTitle); setText("home-writing-link", PG.home.writingLink);
+setText("home-photos-title", PG.home.photosTitle); setText("home-photos-link", PG.home.photosLink);
+setText("qb-label", PG.home.quoteLabel); setText("qb-link", (PG.home.quoteLink || "") + " \u2192");
+setText("writing-h1", PG.writing.heading); setText("writing-lede", PG.writing.lede);
+setText("photos-h1", PG.photos.heading); setText("quotes-h1", PG.quotes.heading);
+setText("about-h1", SITE.about.heading);
+SITE.about.paragraphs.forEach(t => { const p = document.createElement("p"); p.textContent = t; document.getElementById("about-paras").append(p); });
+const facts = document.getElementById("about-facts");
+SITE.about.facts.forEach(f => {
+  const dt = document.createElement("dt"), dd = document.createElement("dd");
+  dt.textContent = f.label;
+  if (f.url) dd.append(mkLink({ label: f.text, url: f.url })); else dd.textContent = f.text;
+  facts.append(dt, dd);
+});
+if (SITE.about.showSocial && SITE.social.length) {
+  const dt = document.createElement("dt"), dd = document.createElement("dd");
+  dt.textContent = "Elsewhere";
+  SITE.social.forEach((l, i) => { if (i) dd.append(" \u00b7 "); dd.append(mkLink(l)); });
+  facts.append(dt, dd);
+}
+setText("contact-h1", SITE.contact.heading);
+setText("contact-intro", SITE.contact.intro);
+if (SITE.contact.showSocial) SITE.social.forEach(l => document.getElementById("contact-social").append(mkLink(l, true)));
+setText("foot-prompt", SITE.footer.prompt);
+const cta = document.getElementById("foot-cta");
+cta.href = SITE.footer.ctaUrl; cta.textContent = SITE.footer.ctaLabel + " \u2192";
+if (isWeb(SITE.footer.ctaUrl)) { cta.target = "_blank"; cta.rel = "noopener"; }
+SITE.footer.links.forEach(l => document.getElementById("foot-links").append(mkLink(l, true)));
+setText("foot-copy", SITE.footer.copyright);
+
+// ---------- Sections added in the admin (text, images, videos and more) ----------
+const BLOCK_FONTS = new Set();
+let bindBlockEdits = () => {};
+const fontStyle = (el, f) => { if (f) { el.style.fontFamily = `"${f}", sans-serif`; BLOCK_FONTS.add(f); } };
+const mk = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text) e.textContent = text; return e; };
+
+// **bold**, *italic* and [label](link) inside a line of text
+function inlineText(parent, text) {
+  String(text || "").split(/(\*\*[^*]+\*\*|\*[^*]+\*|\[[^\]]+\]\([^)]+\))/g).forEach(part => {
+    if (!part) return;
+    let m;
+    if ((m = part.match(/^\*\*([^*]+)\*\*$/))) parent.append(mk("strong", "", m[1]));
+    else if ((m = part.match(/^\*([^*]+)\*$/))) parent.append(mk("em", "", m[1]));
+    else if ((m = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/))) {
+      const a = mk("a", "", m[1]);
+      if (/^(https?:|#|mailto:)/i.test(m[2])) { a.href = m[2]; if (/^https?:/i.test(m[2])) { a.target = "_blank"; a.rel = "noopener"; } }
+      parent.append(a);
+    } else parent.append(part);
+  });
+}
+// Blank line between paragraphs. "## " starts a small heading, "> " a highlighted line.
+function renderText(div, text) {
+  div.textContent = "";
+  String(text || "").split(/\n\s*\n/).map(x => x.trim()).filter(Boolean).forEach(chunk => {
+    const h = chunk.startsWith("## "), pull = chunk.startsWith("> ");
+    const e = mk(h ? "h3" : "p", pull ? "pull" : "");
+    inlineText(e, h ? chunk.slice(3) : pull ? chunk.slice(2) : chunk);
+    div.append(e);
+  });
+}
+function videoEmbed(url) {
+  url = String(url || "").trim();
+  let m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/))([\w-]{11})/);
+  if (m) return "https://www.youtube-nocookie.com/embed/" + m[1];
+  m = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  return m ? "https://player.vimeo.com/video/" + m[1] : "";
+}
+function embedSrc(code) {
+  const m = String(code || "").match(/src=["']([^"']+)["']/i);
+  const u = (m ? m[1] : String(code || "")).trim();
+  return /^https:\/\//i.test(u) ? u : "";
+}
+const safeUrl = u => /^(https?:|#|mailto:)/i.test(u || "") ? u : "";
+
+function renderBlocks(container, blocks, base) {
+  container.textContent = "";
+  (blocks || []).forEach((b, i) => {
+    const wrap = mk("div", "blk b-" + b.type), path = `${base}.${i}`;
+    if (b.align) wrap.dataset.align = b.align;
+    switch (b.type) {
+      case "heading": {
+        const h = mk(b.level === "3" ? "h3" : "h2", "blk-h", b.text); fontStyle(h, b.font); h.dataset.bpath = path + ".text"; wrap.append(h); break;
+      }
+      case "text": {
+        const d = mk("div", "blk-text"); renderText(d, b.text); fontStyle(d, b.font); d.dataset.bpath = path + ".text"; d.dataset.bmulti = "1"; wrap.append(d); break;
+      }
+      case "image": {
+        if (!b.src) break;
+        const fig = mk("figure", "blk-fig sz-" + (b.size || "full")), img = mk("img");
+        img.src = imgSrc(b.src); img.alt = b.alt || ""; img.loading = "lazy";
+        if (safeUrl(b.link)) { const a = mk("a"); a.href = b.link; a.target = "_blank"; a.rel = "noopener"; a.append(img); fig.append(a); } else fig.append(img);
+        if (b.caption) fig.append(mk("figcaption", "", b.caption));
+        wrap.append(fig); break;
+      }
+      case "gallery": {
+        wrap.style.setProperty("--cols", b.cols || 3);
+        (b.images || []).forEach(g => { if (!g.src) return; const img = mk("img"); img.src = imgSrc(g.src); img.alt = g.alt || ""; img.loading = "lazy"; wrap.append(img); });
+        break;
+      }
+      case "video": {
+        const src = videoEmbed(b.url); if (!src) break;
+        const v = mk("div", "vid"), f = mk("iframe");
+        f.src = src; f.loading = "lazy"; f.title = b.caption || "Video"; f.allowFullscreen = true;
+        f.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+        v.append(f); wrap.append(v);
+        if (b.caption) wrap.append(mk("p", "blk-cap", b.caption));
+        break;
+      }
+      case "button": {
+        if (!b.label) break;
+        const a = mk("a", b.style === "outline" ? "outline" : "primary", b.label); a.href = safeUrl(b.url) || "#home";
+        if (/^https?:/i.test(a.href)) { a.target = "_blank"; a.rel = "noopener"; }
+        fontStyle(a, b.font); wrap.append(a); break;
+      }
+      case "quote": {
+        const bq = mk("blockquote"), p = mk("p", "", b.text); fontStyle(p, b.font); p.dataset.bpath = path + ".text"; bq.append(p);
+        if (b.author) { const f = mk("footer"); if (safeUrl(b.url)) { const a = mk("a", "", b.author); a.href = b.url; a.target = "_blank"; a.rel = "noopener"; f.append(a); } else f.textContent = b.author; bq.append(f); }
+        wrap.append(bq); break;
+      }
+      case "columns": {
+        wrap.classList.toggle("rev", b.side === "right");
+        const left = mk("div", "col-img");
+        if (b.src) { const img = mk("img"); img.src = imgSrc(b.src); img.alt = b.alt || ""; img.loading = "lazy"; left.append(img); }
+        const right = mk("div", "blk-text"); renderText(right, b.text); right.dataset.bpath = path + ".text"; right.dataset.bmulti = "1";
+        wrap.append(left, right); break;
+      }
+      case "list": {
+        const l = mk(b.style === "numbers" ? "ol" : "ul");
+        String(b.text || "").split("\n").map(x => x.trim()).filter(Boolean).forEach(t => { const li = mk("li"); inlineText(li, t); l.append(li); });
+        wrap.append(l); break;
+      }
+      case "embed": {
+        const src = embedSrc(b.code); if (!src) break;
+        const f = mk("iframe"); f.src = src; f.loading = "lazy"; f.title = "Embedded content"; f.style.height = (+b.height || 400) + "px";
+        f.setAttribute("sandbox", "allow-scripts allow-same-origin allow-popups allow-forms allow-presentation");
+        f.allowFullscreen = true; wrap.append(f); break;
+      }
+      case "divider": wrap.append(mk("hr")); break;
+      case "spacer": wrap.style.height = (+b.height || 40) + "px"; break;
+    }
+    if (wrap.childNodes.length || b.type === "spacer") container.append(wrap);
+  });
+}
+["home", "writing", "photos", "quotes", "about", "contact"].forEach(pg =>
+  renderBlocks(document.getElementById("blocks-" + pg), (PAGESDATA.extra || {})[pg], `extra.${pg}`));
+
+function renderCustom(slug) {
+  const i = (PAGESDATA.custom || []).findIndex(p => p.slug === slug);
+  if (i < 0) { location.hash = "#home"; return; }
+  const p = PAGESDATA.custom[i];
+  document.title = p.title + " | " + SITE_NAME;
+  document.getElementById("custom-hero").hidden = p.showTitle === false;
+  setText("custom-title", p.title);
+  renderBlocks(document.getElementById("blocks-custom"), p.blocks, `custom.${i}.blocks`);
+  applyFonts(); bindBlockEdits();
+}
+
+
+// Companies I have worked with. Logos are drawn as a one-colour shape, so any logo looks black and white.
+const CL = (SITE.about && SITE.about.clients) || { title: "", items: [] };
+function renderClients() {
+  const list = document.getElementById("clients-list"); list.textContent = "";
+  const items = (CL.items || []).filter(c => c.name || c.src);
+  document.getElementById("clients").hidden = !items.length;
+  setText("clients-title", CL.title);
+  items.forEach(c => {
+    const li = mk("li"), a = mk("a", "client");
+    a.href = safeUrl(c.url) || "#about"; a.setAttribute("aria-label", c.name || "Company");
+    if (/^https?:/i.test(a.href)) { a.target = "_blank"; a.rel = "noopener"; }
+    if (c.src) {
+      const box = mk("span", "client-logo"), img = mk("img"), ink = mk("span", "ink");
+      img.src = imgSrc(c.src); img.alt = "";
+      const u = `url("${imgSrc(c.src)}")`;
+      ink.style.setProperty("-webkit-mask-image", u); ink.style.setProperty("mask-image", u);
+      box.append(img, ink); a.append(box);
+      if (c.name) a.append(mk("small", "", c.name));
+    } else a.append(mk("span", "wordmark", c.name));
+    li.append(a); list.append(li);
+  });
+}
+renderClients();
+document.addEventListener("touchstart", () => {}, { passive: true });
+
+// Fonts picked in the admin. Each key is the id of a piece of text on the page.
+const FONTS = SITE.fonts || {};
+function applyFonts() {
+  const css = window.fontsUrl ? window.fontsUrl([...Object.values(FONTS).filter(Boolean), ...BLOCK_FONTS]) : "";
+  let l = document.getElementById("font-link");
+  if (css) {
+    if (!l) { l = document.createElement("link"); l.id = "font-link"; l.rel = "stylesheet"; document.head.append(l); }
+    if (l.getAttribute("href") !== css) l.href = css;
+  }
+  let st = document.getElementById("font-rules");
+  if (!st) { st = document.createElement("style"); st.id = "font-rules"; document.head.append(st); }
+  st.textContent = Object.entries(FONTS).filter(([id, f]) => f && document.getElementById(id))
+    .map(([id, f]) => `#${id}, #${id} * { font-family: "${f}", sans-serif !important; }`).join("\n");
+}
+applyFonts();
+
+// Click-to-edit. Only on in the admin preview (?preview=1&edit=1). Typing here is sent to the admin, which saves it.
+if (preview && new URLSearchParams(location.search).has("edit")) {
+  const DATA = { site: SITE, quotes: QUOTES, pages: PAGESDATA, photos: PHOTOS };
+  const getP = (o, p) => p.split(".").reduce((a, k) => a == null ? a : a[k], o);
+  const setP = (o, p, v) => { const k = p.split("."); const last = k.pop(); k.reduce((a, x) => a[x], o)[last] = v; };
+  const send = m => parent.postMessage({ source: "site-edit", ...m }, location.origin);
+
+  const css = document.createElement("style");
+  css.textContent = `[data-edit]{cursor:text;outline:none;outline-offset:4px}[data-edit]:hover{outline:1px dashed #ffd400}[data-edit]:focus{outline:2px solid #ffd400}
+#edit-bar{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:50;background:#0e0e0e;color:#fff;border:1px solid #ffd400;border-radius:10px;padding:8px 12px;display:flex;gap:10px;align-items:center;font:13px/1.2 system-ui,sans-serif;max-width:calc(100vw - 24px)}
+#edit-bar[hidden]{display:none}#edit-bar select{background:#000;color:#fff;border:1px solid #444;border-radius:6px;padding:4px 6px;font:inherit}`;
+  document.head.append(css);
+  const bar = document.createElement("div"); bar.id = "edit-bar"; bar.hidden = true;
+  const note = document.createElement("span"), sel = document.createElement("select");
+  sel.add(new Option("Site default font", ""));
+  window.FONT_LIST.forEach(n => sel.add(new Option(n, n)));
+  bar.append(note, sel); document.body.append(bar);
+  let barFont = null;
+  sel.onchange = () => {
+    if (!barFont) return;
+    if (sel.value) FONTS[barFont] = sel.value; else delete FONTS[barFont];
+    applyFonts(); send({ type: "font", id: barFont, font: sel.value });
+  };
+  const hideSoon = () => setTimeout(() => {
+    const a = document.activeElement;
+    if (!bar.contains(a) && !(a && a.dataset && a.dataset.edit)) bar.hidden = true;
+  }, 150);
+
+  function bindEdit(el, file, path, fontId, hint, opts = {}) {
+    if (!el) return;
+    const P = () => typeof path === "function" ? path() : path;
+    const read = () => opts.read ? opts.read() : String(getP(DATA[file], P()) ?? "");
+    el.contentEditable = "plaintext-only"; el.spellcheck = true; el.dataset.edit = "1";
+    el.addEventListener("focus", () => {
+      const host = el.closest("dialog") || document.body; // a pop-up sits above everything, so the bar goes inside it
+      if (bar.parentNode !== host) host.append(bar);
+      const v = read();
+      if (el.textContent !== v) {
+        el.textContent = v;
+        const r = document.createRange(); r.selectNodeContents(el); r.collapse(false);
+        const g = getSelection(); g.removeAllRanges(); g.addRange(r);
+      }
+      if (opts.multi) el.style.whiteSpace = "pre-wrap";
+      barFont = fontId || null; note.textContent = hint || "Editing";
+      sel.hidden = !fontId; sel.value = (fontId && FONTS[fontId]) || ""; bar.hidden = false;
+    });
+    el.addEventListener("input", () => { const v = opts.write ? opts.write(el.textContent) : el.textContent; setP(DATA[file], P(), v); send({ type: "edit", file, path: P(), value: v }); });
+    el.addEventListener("blur", () => {
+      const v = read();
+      if (opts.render) opts.render(el, v); else if (el.id && el.id !== "qb-text") setText(el.id, v); else el.textContent = v;
+      if (opts.multi) el.style.whiteSpace = "";
+      send({ type: "blur", file }); hideSoon();
+    });
+    el.addEventListener("keydown", e => { if (e.key === "Enter" && !opts.multi) { e.preventDefault(); el.blur(); } });
+  }
+
+  const BR = " Put [brackets] around a word to make it yellow.";
+  [
+    ["home-h1", "pages.home.heading", "Heading." + BR], ["home-lede", "pages.home.lede", "Text"],
+    ["home-writing-title", "pages.home.writingTitle", "Section title"], ["home-photos-title", "pages.home.photosTitle", "Section title"],
+    ["qb-label", "pages.home.quoteLabel", "Label"],
+    ["writing-h1", "pages.writing.heading", "Heading." + BR], ["writing-lede", "pages.writing.lede", "Text"],
+    ["photos-h1", "pages.photos.heading", "Heading." + BR], ["quotes-h1", "pages.quotes.heading", "Heading." + BR],
+    ["about-h1", "about.heading", "Heading." + BR], ["clients-title", "about.clients.title", "Section title"],
+    ["contact-h1", "contact.heading", "Heading." + BR], ["contact-intro", "contact.intro", "Text"],
+    ["foot-prompt", "footer.prompt", "Footer text"], ["foot-copy", "footer.copyright", "Copyright line"]
+  ].forEach(([id, path, hint]) => bindEdit(document.getElementById(id), "site", path, id, hint));
+
+  document.querySelectorAll("#about-paras p").forEach((p, i) => bindEdit(p, "site", `about.paragraphs.${i}`, "about-paras", "Paragraph"));
+  [...document.getElementById("about-facts").children].forEach((c, k) => {
+    const i = k >> 1, f = SITE.about.facts[i]; if (!f) return;
+    if (c.tagName === "DT") bindEdit(c, "site", `about.facts.${i}.label`, "about-facts", "Label");
+    else if (!f.url) bindEdit(c, "site", `about.facts.${i}.text`, "about-facts", "Text");
+  });
+  document.querySelectorAll("#quotes-list .quote p").forEach((p, i) =>
+    bindEdit(p, "quotes", `${QUOTES.indexOf(QUOTES_SORTED[i])}.q`, "quotes-list", "Quote"));
+  bindEdit(document.getElementById("lb-story"), "photos", () => `${cur}.story`, null, "Story. Leave a blank line between paragraphs.", {
+    multi: true,
+    read: () => (PHOTOS[cur].story || []).join("\n\n"),
+    write: t => t.split(/\n\s*\n/).map(x => x.trim()).filter(Boolean),
+    render: () => showPhoto(cur)
+  });
+  bindBlockEdits = () => document.querySelectorAll("[data-bpath]").forEach(e => {
+    if (e.dataset.bound) return; e.dataset.bound = "1";
+    const multi = e.dataset.bmulti === "1";
+    bindEdit(e, "pages", e.dataset.bpath, null, multi ? "Text. Use **bold**, *italic* or [link](https://...)" : "Text", { multi, render: multi ? renderText : null });
+  });
+  bindBlockEdits();
+  if (QUOTES_SORTED.length) bindEdit(document.getElementById("qb-text"), "quotes", `${QUOTES.indexOf(QUOTES_SORTED[0])}.q`, "qb-text", "Quote");
+}
+
+const PAGES = ["home", "writing", "post", "photos", "about", "quotes", "contact", "custom"];
+function route() {
+  closing = false;
+  const initial = !!route.first;
+  const [h, arg] = location.hash.replace("#", "").split("/");
+  const isArticle = h === "article", isCustom = h === "page", isPhoto = h === "photo";
+  // A photo opens on top of whichever page it was clicked from (or the Photos page when linked to directly)
+  const page = isPhoto ? (route.current || "photos") : isArticle ? "post" : isCustom ? "custom" : PAGES.includes(h) && h !== "custom" ? h : "home";
+  if (!isPhoto && lb.open) lb.close();
+  if (isArticle) renderArticle(arg); else if (isCustom) renderCustom(arg);;
+  if (!isPhoto && !isArticle && !isCustom && page !== "post") document.title = SITE_NAME;
+  PAGES.forEach(p => { document.getElementById("p-" + p).hidden = p !== page; });
+  const navKey = isArticle ? "writing" : isCustom ? "page/" + arg : page;
+  document.querySelectorAll("#menu a").forEach(a => {
+    if (a.getAttribute("href") === "#" + navKey) a.setAttribute("aria-current", "page");
+    else a.removeAttribute("aria-current");
+  });
+  if (isPhoto) {
+    const i = PHOTOS.findIndex((x, n) => photoKey(x, n) === arg);
+    if (i >= 0) openPhoto(i, !initial); else location.hash = "#photos";
+    return;
+  }
+  route.current = page;
+  window.scrollTo(0, 0);
+  trackPage();
+}
+window.addEventListener("hashchange", route);
+route.first = true;
+route();
+route.first = false;
+</script>
+</body>
+</html>

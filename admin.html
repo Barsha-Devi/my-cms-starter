@@ -1,0 +1,1197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Site admin</title>
+<script src="/fonts.js"></script>
+<style>
+:root { --ink:#000; --panel:#0e0e0e; --line:#262626; --text:#f2f2f2; --muted:#a1a1a1; --accent:#ffd400; --bad:#ff6b6b; }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--ink); color:var(--text); font:16px/1.5 "Inter","Segoe UI",system-ui,sans-serif; }
+[hidden] { display:none !important; }
+
+/* top bar */
+.topbar { display:flex; align-items:center; gap:16px; height:52px; padding:0 18px; border-bottom:1px solid var(--line); background:var(--ink); position:sticky; top:0; z-index:10; }
+.topbar h1 { margin:0; margin-right:auto; font-size:1.125rem; letter-spacing:.02em; text-transform:uppercase; }
+.topctl { display:flex; align-items:center; gap:12px; }
+.who { color:var(--muted); font-size:.875rem; display:flex; gap:12px; align-items:center; }
+.status { color:var(--muted); font-size:.875rem; }
+.status.dirty { color:var(--accent); }
+#editToggle[aria-pressed="true"] { border-color:var(--accent); color:var(--accent); }
+
+/* two panes: editor on the left, the site on the right */
+.shell { display:block; }
+.shell.nopv .side { max-width:880px; margin:0 auto; padding:24px 20px; }
+.shell:not(.nopv) { display:grid; grid-template-columns:minmax(360px, 440px) minmax(0, 1fr); height:calc(100vh - 53px); }
+.side { display:flex; flex-direction:column; min-width:0; min-height:0; }
+.shell:not(.nopv) .side { height:calc(100vh - 53px); }
+#app { display:flex; flex-direction:column; flex:1; min-height:0; }
+.side-head { display:flex; align-items:center; gap:10px; padding:12px 18px; border-bottom:1px solid var(--line); min-height:56px; }
+.side-head h2 { margin:0; font-size:1.0625rem; flex:1; }
+.side-body { flex:1; overflow:auto; padding:18px 18px 40px; }
+.side-foot { display:flex; gap:8px; padding:12px 18px; border-top:1px solid var(--line); background:var(--ink); }
+.side-foot .grow { flex:1; }
+.livepane { border-left:1px solid var(--line); display:flex; flex-direction:column; min-width:0; height:calc(100vh - 53px); }
+.pv-bar { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:8px 14px; border-bottom:1px solid var(--line); color:var(--muted); font-size:.8125rem; }
+.pv-bar button { padding:4px 10px; font-size:.8125rem; }
+.pv-bar span { flex:1; }
+.livepane iframe { flex:1; width:100%; border:0; background:#000; }
+@media (max-width: 900px) {
+  .topbar { flex-wrap:wrap; height:auto; padding:10px 14px; } #editToggle { display:none; }
+  .shell:not(.nopv) { display:block; height:auto; } .shell:not(.nopv) .side { height:auto; } .side-body { overflow:visible; } .livepane { display:none; }
+}
+
+/* buttons and fields */
+button, .btn { font:inherit; cursor:pointer; background:transparent; color:var(--text); border:1px solid var(--line); border-radius:8px; padding:8px 14px; text-decoration:none; display:inline-block; }
+button:hover, .btn:hover { border-color:var(--accent); }
+button.primary, .btn.primary { background:var(--accent); color:#000; border-color:var(--accent); font-weight:600; }
+button.danger:hover { border-color:var(--bad); color:var(--bad); }
+button:disabled { opacity:.4; cursor:not-allowed; }
+button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, summary:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+label { display:grid; gap:6px; font-size:.8125rem; color:var(--muted); }
+input, textarea, select { font:inherit; font-size:.9375rem; background:#000; color:var(--text); border:1px solid var(--line); border-radius:8px; padding:9px 11px; width:100%; }
+textarea { min-height:96px; resize:vertical; }
+textarea.tall { min-height:240px; }
+.hint { font-size:.8125rem; color:var(--muted); margin:0; }
+.check { display:flex; gap:10px; align-items:center; color:var(--text); font-size:.9375rem; }
+.check input { width:auto; }
+.inrow { display:grid; grid-template-columns:minmax(0, 1fr) 128px; gap:8px; }
+select.fontsel { font-size:.8125rem; padding:9px 8px; color:var(--muted); }
+label.area .fontsel { justify-self:end; width:150px; }
+.preview { max-width:220px; max-height:160px; border-radius:8px; border:1px solid var(--line); display:none; }
+.preview.show { display:block; }
+
+/* home screen */
+.tip { margin:0 0 4px; padding:12px 14px; border:1px dashed var(--line); border-radius:12px; color:var(--muted); font-size:.875rem; }
+.gtitle { margin:24px 0 10px; font-size:.75rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); font-weight:600; }
+.navlist { list-style:none; margin:0; padding:0; display:grid; gap:8px; }
+.navrow { display:flex; align-items:center; gap:12px; width:100%; text-align:left; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px 14px; }
+.navrow .t { flex:1; display:grid; gap:1px; min-width:0; }
+.navrow .t b { font-weight:600; font-size:.9375rem; }
+.navrow .t small { color:var(--muted); font-size:.8125rem; }
+.navrow .chev { color:var(--muted); font-size:1.25rem; line-height:1; }
+
+/* lists of photos, articles and quotes */
+.addbtn { width:100%; padding:11px; margin-bottom:14px; }
+.irow { display:grid; grid-template-columns:auto minmax(0, 1fr) auto; gap:12px; align-items:center; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:10px; cursor:pointer; }
+.irow:hover, .irow:focus-visible { border-color:var(--accent); outline:none; }
+.irow:not(.hasimg) { grid-template-columns:minmax(0, 1fr) auto; padding:12px 14px; }
+.irow img { width:52px; height:52px; object-fit:cover; border-radius:8px; background:#1a1a1a; display:block; }
+.irow b { display:block; font-weight:600; font-size:.9375rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.irow small { display:block; color:var(--muted); font-size:.8125rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.mini { display:flex; flex-direction:column; gap:4px; }
+.mini button, .tool { padding:2px 9px; font-size:.8125rem; line-height:1.5; }
+.empty { color:var(--muted); text-align:center; padding:30px 10px; border:1px dashed var(--line); border-radius:12px; }
+#itemform { display:grid; gap:16px; }
+
+/* page sections */
+details.acc { background:var(--panel); border:1px solid var(--line); border-radius:12px; margin-bottom:12px; }
+details.acc > summary { list-style:none; cursor:pointer; padding:13px 14px; font-weight:600; font-size:.9375rem; display:flex; justify-content:space-between; align-items:center; }
+details.acc > summary::-webkit-details-marker { display:none; }
+details.acc > summary::after { content:"+"; color:var(--muted); font-size:1.25rem; line-height:1; }
+details.acc[open] > summary::after { content:"\2013"; }
+.acc-body { display:grid; gap:16px; padding:2px 14px 16px; }
+.rowbox { border:1px solid var(--line); border-radius:10px; padding:10px; display:grid; gap:10px; background:#0a0a0a; }
+.rowtools { display:flex; gap:4px; justify-content:flex-end; }
+.cols { display:grid; gap:10px; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); align-items:start; }
+
+/* page builder */
+.builder { display:grid; gap:10px; }
+.bcard { border:1px solid var(--line); border-radius:12px; background:#0a0a0a; }
+.bcard.over { border-color:var(--accent); }
+.bhead { display:flex; align-items:center; gap:8px; padding:8px 10px; }
+.handle { cursor:grab; color:var(--muted); padding:2px 6px; user-select:none; font-size:1rem; }
+.btitle { flex:1; min-width:0; background:none; border:0; text-align:left; padding:4px 2px; display:grid; gap:0; }
+.btitle b { font-size:.875rem; font-weight:600; }
+.btitle small { color:var(--muted); font-size:.75rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.bbody { display:grid; gap:14px; padding:4px 12px 14px; border-top:1px solid var(--line); padding-top:14px; }
+.picker { border:1px solid var(--accent); border-radius:12px; padding:14px; display:grid; gap:10px; background:var(--panel); }
+.picker .gtitle { margin:6px 0 2px; }
+.pgrid { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px; }
+.pick { text-align:left; display:grid; gap:1px; padding:9px 10px; border-radius:10px; background:#000; }
+.pick b { font-size:.875rem; font-weight:600; }
+.pick small { color:var(--muted); font-size:.75rem; line-height:1.3; }
+.dangerzone { margin-top:6px; }
+.logoprev { height:54px; background:#0a0a0a; border:1px solid var(--line); border-radius:8px; display:grid; place-items:center; padding:8px; }
+.logoprev img { max-height:34px; max-width:100%; filter:brightness(0) invert(1); }
+.logoprev span { color:var(--muted); font-size:.8125rem; }
+.presets { display:flex; flex-wrap:wrap; gap:6px; }
+.stack { display:grid; gap:14px; justify-items:start; }
+.stack label { width:100%; }
+.stack .hint { margin-top:2px; }
+#toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:var(--panel); border:1px solid var(--accent); border-radius:10px; padding:12px 18px; max-width:calc(100vw - 32px); display:none; z-index:20; }
+#toast.bad { border-color:var(--bad); }
+#toast.show { display:block; }
+.login { text-align:center; padding:80px 0; display:grid; gap:18px; justify-items:center; }
+</style>
+</head>
+<body>
+<div class="topbar" id="topbar">
+  <h1>Site admin</h1>
+  <div class="topctl" id="topctl" hidden>
+    <button type="button" id="editToggle" aria-pressed="true">Edit on the page: On</button>
+    <span class="status" id="status"></span>
+    <button type="button" class="primary" id="save" disabled>Save to site</button>
+  </div>
+  <div class="who" id="who" hidden><span id="who-name"></span><a class="btn" href="/" target="_blank" rel="noopener">View site</a><button type="button" id="signout">Sign out</button></div>
+</div>
+
+<div class="shell nopv" id="shell">
+  <div class="side" id="side">
+    <section id="login" class="login" hidden>
+      <p>Sign in with GitHub to edit your site.</p>
+      <a class="btn primary" href="/api/login">Sign in with GitHub</a>
+    </section>
+    <div id="app" hidden>
+      <div class="side-head"><button type="button" class="back" id="back" hidden>&#8249; Back</button><h2 id="sideTitle"></h2></div>
+      <div class="side-body" id="sideBody"></div>
+      <div class="side-foot" id="sideFoot" hidden></div>
+    </div>
+  </div>
+  <aside class="livepane" id="previewPane" hidden>
+    <div class="pv-bar"><button type="button" id="pvBack" title="Go back in the site, or close an open photo">&#8249; Back</button><span>Your site. Click any text to edit it right here. Changes are saved when you press Save to site.</span><button type="button" id="pvRefresh">Refresh</button></div>
+    <iframe id="pv" title="Preview of your site"></iframe>
+  </aside>
+</div>
+<div id="toast" role="status"></div>
+
+<script>
+const SCHEMAS = {
+  photos: {
+    singular: "photo", plural: "Photos", count: "photos",
+    autoSlug: true, slugFrom: p => p.caption || p.place,
+    title: p => p.caption || p.place,
+    sub: p => [p.place, p.when].filter(Boolean).join(" · "),
+    imgKey: "img",
+    blank: () => ({ img: "", place: "", when: "", story: [] }),
+    fields: [
+      { k: "img", type: "image", label: "Photo", required: true },
+      { k: "place", label: "Place (shown on hover)", required: true },
+      { k: "caption", label: "Caption (optional, replaces the place in the story view)" },
+      { k: "when", label: "When (for example August 2026)", required: true },
+      { k: "story", type: "paras", label: "Story (optional, leave a blank line between paragraphs)" }
+    ]
+  },
+  writing: {
+    singular: "article", plural: "Articles", count: "articles",
+    title: w => w.t,
+    sub: w => `${w.d} · ${w.pub === "site" ? "only on this site" : w.pub}`,
+    imgKey: "img",
+    autoSlug: true,
+    blank: () => ({ d: new Date().toISOString().slice(0, 10), pub: "site", t: "" }),
+    fields: [
+      { k: "t", label: "Title", required: true },
+      { k: "d", type: "date", label: "Date", required: true },
+      { k: "where", virtual: true, type: "select", options: [["site", "Only on this site (I write it here)"], ["other", "Published on another website"]], get: w => (!w.pub || w.pub === "site") ? "site" : "other", label: "Where does this article live?" },
+      { k: "pub", showIf: v => v.where !== "site", list: ["medium.com", "substack.com", "linkedin.com"], label: "Which website? (for example medium.com)" },
+      { k: "body", type: "paras", tall: true, showIf: v => v.where === "site", label: "Full article. Leave a blank line between paragraphs. Start a line with ## for a heading, or > for a highlighted quote." },
+      { k: "u", type: "url", showIf: v => v.where !== "site", label: "Link to the article" },
+      { k: "img", type: "image", label: "Cover image (optional for articles on this site)" },
+      { k: "x", type: "textarea", label: "Short summary", required: true }
+    ]
+  },
+  quotes: {
+    singular: "quote", plural: "Quotes", count: "quotes",
+    title: q => q.q.length > 70 ? q.q.slice(0, 70) + "..." : q.q,
+    sub: q => `${q.a} · ${q.d.split("-").reverse().join(".")}${q.u ? "" : " · no link"}`,
+    blank: () => ({ d: new Date().toISOString().slice(0, 10) }),
+    fields: [
+      { k: "q", type: "textarea", label: "The quote", required: true },
+      { k: "a", label: "Who said it", required: true },
+      { k: "u", type: "url", label: "Link to where you read it (their website or the page, optional)" },
+      { k: "d", type: "date", label: "Date you added it", required: true }
+    ]
+  }
+};
+
+const PAGES = [
+  ["home", "Home", "Banner, section titles, quote block"],
+  ["writing", "Writing page", "Heading and intro text"],
+  ["photos", "Photos page", "Heading"],
+  ["quotes", "Quotes page", "Heading and quote style"],
+  ["about", "About", "Introduction, facts, social links"],
+  ["contact", "Contact", "Heading, intro, message delivery"]
+];
+const PAGE_HASH = { home: "#home", writing: "#writing", photos: "#photos", quotes: "#quotes", about: "#about", contact: "#contact" };
+const LIST_HASH = { photos: "#photos", writing: "#writing", quotes: "#quotes" };
+const linkPages = () => [...LINK_PAGES, ...((state.lists.pages && state.lists.pages.custom) || []).map(p => ["#page/" + p.slug, p.title])];
+const LINK_PAGES = [["#home", "Home"], ["#writing", "Writing"], ["#photos", "Photos"], ["#about", "About"], ["#quotes", "Quotes"], ["#contact", "Contact"]];
+
+const $ = id => document.getElementById(id);
+const state = { me: null, team: null, view: { name: "home" }, lists: {}, shas: {}, dirty: {}, pending: {}, previews: {}, loading: {}, open: {}, editMode: true };
+
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text) e.textContent = text; return e; }
+function btn(label, fn, disabled, cls) {
+  const b = el("button", cls, label); b.type = "button"; b.onclick = fn; b.disabled = !!disabled; return b;
+}
+
+function toast(msg, bad) {
+  const t = $("toast");
+  t.textContent = msg; t.className = "show" + (bad ? " bad" : "");
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.className = "", bad ? 7000 : 3500);
+}
+
+async function api(path, opts) {
+  const r = await fetch(path, { credentials: "same-origin", ...opts });
+  let body = null; try { body = await r.json(); } catch {}
+  if (r.status === 401) { showLogin(); throw new Error("Please sign in again."); }
+  if (!r.ok) throw new Error(((body && body.error) || "Something went wrong.") + (body && body.detail ? " (" + body.detail + ")" : ""));
+  return body;
+}
+
+function showLogin() { $("login").hidden = false; $("app").hidden = true; $("who").hidden = true; $("topctl").hidden = true; }
+
+async function load(tab) {
+  if (state.lists[tab]) return;
+  if (!state.loading[tab]) state.loading[tab] = api("/api/content?file=" + tab).then(r => {
+    state.lists[tab] = r.data; state.shas[tab] = r.sha; state.pending[tab] = {};
+  });
+  await state.loading[tab];
+}
+
+const mimeOf = p => /\.svg$/i.test(p) ? "image/svg+xml" : /\.png$/i.test(p) ? "image/png" : /\.webp$/i.test(p) ? "image/webp" : "image/jpeg";
+function imgSrc(tab, path) {
+  const p = (state.pending[tab] && state.pending[tab][path]) || state.previews[path];
+  return p ? `data:${mimeOf(path)};base64,` + p : "/" + path;
+}
+
+function updateStatus() {
+  const dirty = Object.values(state.dirty).some(Boolean);
+  $("save").disabled = !dirty;
+  $("status").textContent = dirty ? "Unsaved changes" : "Everything is saved";
+  $("status").className = "status" + (dirty ? " dirty" : "");
+}
+
+// ---------- Navigation ----------
+function viewHash() {
+  const v = state.view;
+  if (v.name === "list" || v.name === "edit") return LIST_HASH[v.arg];
+  if (v.name === "page") return PAGE_HASH[v.arg];
+  if (v.name === "cpage") { const p = ((state.lists.pages || {}).custom || [])[v.idx]; return p ? "#page/" + p.slug : "#home"; }
+  return "#home";
+}
+async function loadTeam() {
+  try { state.team = await api("/api/team"); } catch (e) { toast(e.message, true); state.team = { owner: state.me.login, users: [], tokenConfigured: false }; }
+  if (state.view.name === "team") renderView();
+}
+function go(name, arg, idx) {
+  if (name === "team") { state.team = null; loadTeam(); }
+  state.view = { name, arg, idx };
+  renderView();
+  $("sideBody").scrollTop = 0;
+  showInPreview(viewHash());
+}
+function back() { const v = state.view; if (v.name === "edit") go("list", v.arg); else go("home"); }
+
+function viewTitle() {
+  const v = state.view;
+  switch (v.name) {
+    case "list": return SCHEMAS[v.arg].plural;
+    case "edit": return (v.idx === null ? "Add " : "Edit ") + SCHEMAS[v.arg].singular;
+    case "page": return PAGES.find(p => p[0] === v.arg)[1];
+    case "menu": return "Menu and social links";
+    case "footer": return "Footer";
+    case "team": return "Team";
+    case "track": return "Tracking and links";
+    case "cpage": { const p = ((state.lists.pages || {}).custom || [])[v.idx]; return p ? p.title : "Page"; }
+    default: return "What would you like to change?";
+  }
+}
+
+function renderView() {
+  const v = state.view, body = $("sideBody"), key = JSON.stringify(v);
+  const keep = renderView.key === key ? body.scrollTop : 0; renderView.key = key;
+  body.innerHTML = ""; $("sideFoot").hidden = true; $("sideFoot").innerHTML = "";
+  $("back").hidden = v.name === "home"; $("sideTitle").textContent = viewTitle();
+  if (v.name === "home") homeView(body);
+  else if (v.name === "list") listView(body, v.arg);
+  else if (v.name === "edit") editView(body, v.arg, v.idx);
+  else if (v.name === "cpage") cpageView(body);
+  else if (v.name === "team") teamView(body);
+  else if (v.name === "track") trackView(body);
+  else siteView(body);
+  body.scrollTop = keep;
+  updateStatus();
+}
+
+function navRow(title, sub, fn) {
+  const li = el("li"), b = el("button", "navrow"); b.type = "button"; b.onclick = fn;
+  const t = el("span", "t"); t.append(el("b", "", title), el("small", "", sub));
+  b.append(t, el("span", "chev", "›")); li.append(b); return li;
+}
+
+function homeView(body) {
+  body.append(el("p", "tip", "Tip: you can also click any text on your site on the right and type straight into it."));
+  body.append(el("h3", "gtitle", "Pages"));
+  const pages = el("ul", "navlist");
+  PAGES.forEach(([id, name, sub]) => pages.append(navRow(name, sub, () => go("page", id))));
+  body.append(pages);
+  body.append(el("h3", "gtitle", "Your own pages"));
+  const own = el("ul", "navlist");
+  ((state.lists.pages || {}).custom || []).forEach((p, i) => own.append(navRow(p.title, `${(p.blocks || []).length} sections`, () => go("cpage", "", i))));
+  own.append(navRow("+ New page", "Build a page from blocks", newPage));
+  body.append(own);
+  body.append(el("h3", "gtitle", "Your content"));
+  const content = el("ul", "navlist");
+  ["photos", "writing", "quotes"].forEach(t => {
+    const s = SCHEMAS[t], n = (state.lists[t] || []).length;
+    content.append(navRow(s.plural, `${n} ${s.count}`, () => go("list", t)));
+  });
+  body.append(content);
+  body.append(el("h3", "gtitle", "Whole site"));
+  const site = el("ul", "navlist");
+  site.append(navRow("Menu and social links", "Top menu, your name, social links", () => go("menu")));
+  site.append(navRow("Footer", "Footer text and links", () => go("footer")));
+  site.append(navRow("Tracking and links", "Google Analytics and tracked links to share", () => go("track")));
+  if (state.me && state.me.role === "owner") site.append(navRow("Team", "Who else can edit this site", () => go("team")));
+  body.append(site);
+}
+
+// ---------- Photos, articles and quotes ----------
+function touch(tab) { state.dirty[tab] = true; updateStatus(); refreshPreview(); }
+
+function listView(body, tab) {
+  const s = SCHEMAS[tab], list = state.lists[tab] || [];
+  body.append(btn("+ Add " + s.singular, () => go("edit", tab, null), false, "primary addbtn"));
+  if (!list.length) body.append(el("p", "empty", `No ${s.count} yet. Press the button above to add one.`));
+  const ul = el("ul", "navlist");
+  list.forEach((item, i) => {
+    const li = el("li", "irow"), hasImg = s.imgKey && item[s.imgKey];
+    li.tabIndex = 0; li.setAttribute("role", "button");
+    if (hasImg) { li.classList.add("hasimg"); const im = el("img"); im.src = imgSrc(tab, item[s.imgKey]); im.alt = ""; li.append(im); }
+    const t = el("div"); t.append(el("b", "", s.title(item)), el("small", "", s.sub(item)));
+    const mini = el("div", "mini");
+    const mv = (d, e) => { e.stopPropagation(); [list[i], list[i + d]] = [list[i + d], list[i]]; touch(tab); renderView(); };
+    const up = btn("↑", e => mv(-1, e), i === 0), down = btn("↓", e => mv(1, e), i === list.length - 1);
+    up.setAttribute("aria-label", "Move up"); down.setAttribute("aria-label", "Move down");
+    mini.append(up, down);
+    li.append(t, mini);
+    li.onclick = () => go("edit", tab, i);
+    li.onkeydown = e => { if (e.key === "Enter" && e.target === li) go("edit", tab, i); };
+    ul.append(li);
+  });
+  body.append(ul);
+}
+
+// Shrinks a photo in the browser so it uploads fast and the site stays quick.
+function shrink(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file), im = new Image();
+    im.onload = () => {
+      const max = 1800, scale = Math.min(1, max / Math.max(im.width, im.height));
+      const c = document.createElement("canvas");
+      c.width = Math.round(im.width * scale); c.height = Math.round(im.height * scale);
+      c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      resolve(c.toDataURL("image/jpeg", 0.85).split(",")[1]);
+    };
+    im.onerror = () => reject(new Error("That photo could not be read. Use a JPG or PNG."));
+    im.src = url;
+  });
+}
+
+const slug = s => (s || "photo").replace(/['’]/g, "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/ł/g, "l").replace(/đ/g, "d").replace(/ø/g, "o").replace(/æ/g, "ae").replace(/ß/g, "ss").replace(/œ/g, "oe").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "photo";
+
+function editView(body, tab, index) {
+  const s = SCHEMAS[tab], list = state.lists[tab], isNew = index === null;
+  const item = isNew ? s.blank() : { ...list[index] };
+  let newImg = null; // { path, base64 }
+  const form = el("form"); form.id = "itemform"; form.noValidate = false;
+  const inputs = {}, labels = {};
+
+  s.fields.forEach(f => {
+    const lab = el("label"); lab.append(f.label); labels[f.k] = lab;
+    let inp;
+    if (f.type === "textarea") { inp = el("textarea"); inp.value = item[f.k] || ""; }
+    else if (f.type === "paras") { inp = el("textarea"); if (f.tall) inp.className = "tall"; inp.value = (item[f.k] || []).join("\n\n"); }
+    else if (f.type === "select") {
+      inp = el("select");
+      const opts = f.options.map(o => Array.isArray(o) ? o : [o, o]);
+      opts.forEach(o => inp.add(new Option(o[1], o[0])));
+      inp.value = f.get ? f.get(item) : item[f.k];
+      inp.onchange = sync;
+    }
+    else if (f.type === "image") {
+      inp = el("input"); inp.type = "file"; inp.accept = "image/jpeg,image/png,image/webp";
+      const pv = el("img", "preview" + (item[f.k] ? " show" : "")); pv.alt = "";
+      if (item[f.k]) pv.src = imgSrc(tab, item[f.k]);
+      inp.onchange = async () => {
+        if (!inp.files[0]) return;
+        try {
+          const b64 = await shrink(inp.files[0]);
+          newImg = { path: `img/${slug(item.place || item.t)}-${Date.now().toString(36)}.jpg`, base64: b64 };
+          pv.src = "data:image/jpeg;base64," + b64; pv.className = "preview show";
+        } catch (e) { toast(e.message, true); inp.value = ""; }
+      };
+      lab.append(inp, pv); form.append(lab); inputs[f.k] = inp; return;
+    }
+    else {
+      inp = el("input"); inp.type = f.type || "text"; inp.value = (f.k === "pub" && item.pub === "site") ? "" : (item[f.k] || "");
+      if (f.list) { const dl = el("datalist"); dl.id = "dl-" + f.k; f.list.forEach(o => dl.append(new Option(o))); inp.setAttribute("list", dl.id); lab.append(dl); }
+    }
+    if (f.required) inp.required = true;
+    lab.append(inp); form.append(lab); inputs[f.k] = inp;
+  });
+
+  function sync() {
+    const v = {}; for (const k in inputs) v[k] = inputs[k].value;
+    s.fields.forEach(f => { if (f.showIf) labels[f.k].hidden = !f.showIf(v); });
+  }
+  sync();
+  body.append(form);
+
+  const foot = $("sideFoot"); foot.hidden = false;
+  if (!isNew) foot.append(btn("Delete", () => {
+    if (!confirm(`Delete "${s.title(list[index])}"? It leaves the site when you press Save to site.`)) return;
+    list.splice(index, 1); touch(tab); go("list", tab);
+  }, false, "danger"));
+  const grow = el("span", "grow"); foot.append(grow, btn("Cancel", () => go("list", tab)));
+  const ok = el("button", "primary", isNew ? "Add" : "Done"); ok.type = "submit"; ok.setAttribute("form", "itemform"); foot.append(ok);
+
+  form.onsubmit = e => {
+    e.preventDefault();
+    const out = { ...item };
+    for (const f of s.fields) {
+      if (f.virtual) continue;
+      if (labels[f.k].hidden) { delete out[f.k]; continue; }
+      if (f.type === "image") {
+        if (newImg) { out[f.k] = newImg.path; state.pending[tab][newImg.path] = newImg.base64; }
+        if (!out[f.k] && f.required) { toast("Please choose a photo.", true); return; }
+      } else if (f.type === "paras") {
+        out[f.k] = inputs[f.k].value.split(/\n\s*\n/).map(x => x.trim()).filter(Boolean);
+      } else {
+        const v = inputs[f.k].value.trim();
+        if (v) out[f.k] = v; else delete out[f.k];
+      }
+    }
+    if (tab === "writing") {
+      if (inputs.where.value === "site") {
+        out.pub = "site";
+        if (!(out.body && out.body.length)) { toast("Please write the article text.", true); return; }
+      } else {
+        if (!out.pub) { toast("Please say which website it was published on.", true); return; }
+        if (!out.u) { toast("Please add the link to the article.", true); return; }
+      }
+    }
+    if (s.autoSlug && !out.slug) {
+      let base = slug(s.slugFrom ? s.slugFrom(out) : out.t), n = base, i = 2;
+      while (list.some(x => x.slug === n)) n = base + "-" + i++;
+      out.slug = n;
+    }
+    if (isNew) list.unshift(out); else list[index] = out;
+    touch(tab); go("list", tab);
+  };
+}
+
+// ---------- Page text, menu and footer ----------
+function markSiteDirty() { state.dirty.site = true; updateStatus(); refreshPreview(); }
+const fam = n => n ? `"${n}", sans-serif` : "";
+
+// A compact font menu. "id" is the piece of text on the site it applies to.
+function fontSelect(id) {
+  const d = state.lists.site; d.fonts = d.fonts || {};
+  const sel = el("select", "fontsel"); sel.setAttribute("aria-label", "Font"); sel.title = "Font for this text";
+  sel.add(new Option("Default font", ""));
+  window.FONT_LIST.forEach(n => { const o = new Option(n, n); o.style.fontFamily = fam(n); sel.add(o); });
+  sel.value = d.fonts[id] || "";
+  sel.onchange = () => { if (sel.value) d.fonts[id] = sel.value; else delete d.fonts[id]; markSiteDirty(); };
+  return sel;
+}
+function fontRow(label, id) { const lab = el("label"); lab.append(label, fontSelect(id)); return lab; }
+
+function textField(label, obj, key, opts = {}) {
+  const lab = el("label", opts.area ? "area" : ""); lab.append(label);
+  const inp = opts.area ? el("textarea") : el("input");
+  inp.value = obj[key] || "";
+  inp.oninput = () => { obj[key] = inp.value; (opts.mark || markSiteDirty)(); };
+  if (!opts.font) lab.append(inp);
+  else if (opts.area) lab.append(inp, fontSelect(opts.font));
+  else { const row = el("div", "inrow"); row.append(inp, fontSelect(opts.font)); lab.append(row); }
+  return lab;
+}
+
+// Choose one of your pages, or paste a website address.
+function linkField(label, obj, key) {
+  const lab = el("label"); lab.append(label);
+  const sel = el("select"), web = el("input");
+  const pagesList = linkPages();
+  pagesList.forEach(([v, n]) => sel.add(new Option("Page: " + n, v)));
+  sel.add(new Option("A website address...", "__web"));
+  const custom = !pagesList.some(([v]) => v === obj[key]);
+  sel.value = custom ? "__web" : obj[key];
+  web.placeholder = "https://..."; web.value = custom ? (obj[key] || "") : ""; web.hidden = !custom;
+  sel.onchange = () => {
+    if (sel.value === "__web") { web.hidden = false; obj[key] = web.value || "https://"; web.value = obj[key]; web.focus(); }
+    else { web.hidden = true; obj[key] = sel.value; }
+    markSiteDirty();
+  };
+  web.oninput = () => { obj[key] = web.value.trim(); markSiteDirty(); };
+  lab.append(sel, web); return lab;
+}
+
+function checkField(label, obj, key, mark = markSiteDirty) {
+  const lab = el("label", "check"), cb = el("input"); cb.type = "checkbox"; cb.checked = !!obj[key];
+  cb.onchange = () => { obj[key] = cb.checked; mark(); };
+  lab.append(cb, label); return lab;
+}
+
+function optionalLink(row) {
+  const lab = el("label"); lab.append("Link (optional)");
+  const inp = el("input"); inp.placeholder = "#contact or https://..."; inp.value = row.url || "";
+  inp.oninput = () => { const v = inp.value.trim(); if (v) row.url = v; else delete row.url; markSiteDirty(); };
+  lab.append(inp); return lab;
+}
+
+// A collapsible group of fields. The first one on each screen starts open.
+function section(title, hint, ...children) {
+  const v = state.view, key = v.name + ":" + (v.arg || "") + ":" + title;
+  const d = el("details", "acc"); d.dataset.first = String(!section.n);
+  d.open = key in state.open ? state.open[key] : section.n === 0;
+  section.n++;
+  d.ontoggle = () => { state.open[key] = d.open; };
+  d.append(el("summary", "", title));
+  const b = el("div", "acc-body");
+  if (hint) b.append(el("p", "hint", hint));
+  children.forEach(c => b.append(c));
+  d.append(b); return d;
+}
+
+const rowTools = (arr, i, mark = markSiteDirty) => {
+  const t = el("div", "rowtools"), rerender = () => { mark(); renderView(); };
+  const up = btn("↑", () => { [arr[i - 1], arr[i]] = [arr[i], arr[i - 1]]; rerender(); }, i === 0, "tool");
+  const down = btn("↓", () => { [arr[i + 1], arr[i]] = [arr[i], arr[i + 1]]; rerender(); }, i === arr.length - 1, "tool");
+  up.setAttribute("aria-label", "Move up"); down.setAttribute("aria-label", "Move down");
+  t.append(up, down, btn("Remove", () => { arr.splice(i, 1); rerender(); }, false, "tool danger"));
+  return t;
+};
+
+// A list you can add to, remove from and reorder. build(row, container) fills in the fields for one row.
+function listEditor(title, hint, arr, blank, build, fontId) {
+  const kids = [];
+  arr.forEach((row, i) => {
+    const box = el("div", "rowbox"), cols = el("div", "cols");
+    build(row, cols); box.append(rowTools(arr, i), cols); kids.push(box);
+  });
+  kids.push(btn("+ Add another", () => { arr.push(blank()); markSiteDirty(); renderView(); }));
+  if (fontId) kids.push(fontRow("Font for this text", fontId));
+  return section(title, hint, ...kids);
+}
+
+// About paragraphs are stored as plain strings.
+function paragraphEditor(title, hint, arr, fontId) {
+  const kids = [];
+  arr.forEach((t, i) => {
+    const box = el("div", "rowbox"), ta = el("textarea"); ta.value = t; ta.oninput = () => { arr[i] = ta.value; markSiteDirty(); };
+    box.append(rowTools(arr, i), ta); kids.push(box);
+  });
+  kids.push(btn("+ Add a paragraph", () => { arr.push(""); markSiteDirty(); renderView(); }));
+  if (fontId) kids.push(fontRow("Font for this text", fontId));
+  return section(title, hint, ...kids);
+}
+
+function siteSections(d) {
+  const pg = d.pages, home = pg.home, v = state.view;
+  const linkRow = (r, c) => c.append(textField("Name", r, "label"), linkField("Goes to", r, "url"));
+  if (v.name === "menu") return [
+    section("Your name at the top left", null, textField("Name", d, "brand", { font: "brand" })),
+    listEditor("Menu links", "Each item is one link in the menu at the top of every page.", d.nav, () => ({ label: "", url: "#home" }), linkRow, "menu"),
+    listEditor("Social links", "Shown on the About and Contact pages.", d.social, () => ({ label: "", url: "https://" }), linkRow)
+  ];
+  if (v.name === "footer") return [
+    section("Footer text", null,
+      textField("Question or invitation (small text)", d.footer, "prompt", { font: "foot-prompt" }),
+      textField("Big link text", d.footer, "ctaLabel", { font: "foot-cta" }),
+      linkField("Big link goes to", d.footer, "ctaUrl"),
+      textField("Copyright line", d.footer, "copyright", { font: "foot-copy" })),
+    listEditor("Footer links", "The links on the right of the footer.", d.footer.links, () => ({ label: "", url: "https://" }), linkRow, "foot-links")
+  ];
+  switch (v.arg) {
+    case "home": return [
+      section("Top banner", "Put [square brackets] around a word to show it in yellow.",
+        textField("Heading", home, "heading", { font: "home-h1" }),
+        textField("Text under the heading", home, "lede", { area: true, font: "home-lede" })),
+      section("Latest writing section", null,
+        textField("Section title", home, "writingTitle", { font: "home-writing-title" }),
+        textField("Link text", home, "writingLink", { font: "home-writing-link" })),
+      section("Latest photos section", null,
+        textField("Section title", home, "photosTitle", { font: "home-photos-title" }),
+        textField("Link text", home, "photosLink", { font: "home-photos-link" })),
+      section("Quote block", "The quote itself comes from Your content, Quotes.",
+        textField("Small label", home, "quoteLabel", { font: "qb-label" }),
+        textField("Link text", home, "quoteLink", { font: "qb-link" }),
+        fontRow("Font for the quote", "qb-text"))
+    ];
+    case "writing": return [
+      section("Top banner", "The articles themselves are in Your content, Articles.",
+        textField("Heading", pg.writing, "heading", { font: "writing-h1" }),
+        textField("Text under the heading", pg.writing, "lede", { area: true, font: "writing-lede" }))
+    ];
+    case "photos": return [
+      section("Top banner", "The photos themselves are in Your content, Photos.",
+        textField("Heading", pg.photos, "heading", { font: "photos-h1" }))
+    ];
+    case "quotes": return [
+      section("Top banner", null, textField("Heading", pg.quotes, "heading", { font: "quotes-h1" })),
+      section("Quote cards", "The quotes themselves are in Your content, Quotes.", fontRow("Font for the quotes", "quotes-list"))
+    ];
+    case "about": return [
+      section("Heading", null, textField("Heading", d.about, "heading", { font: "about-h1" })),
+      paragraphEditor("Introduction text", "Each box is one paragraph.", d.about.paragraphs, "about-paras"),
+      listEditor("Facts", "The small list under the text, such as Work or Interests. Add a link to make a line clickable.", d.about.facts, () => ({ label: "", text: "" }),
+        (r, c) => c.append(textField("Label", r, "label"), textField("Text", r, "text"), optionalLink(r)), "about-facts"),
+      clientsEditor(d),
+      section("Social links", null, checkField("Show my social links on the About page", d.about, "showSocial"))
+    ];
+    default: return [
+      section("Top banner", null,
+        textField("Heading", d.contact, "heading", { font: "contact-h1" }),
+        textField("Intro text", d.contact, "intro", { area: true, font: "contact-intro" }),
+        checkField("Show my social links on the Contact page", d.contact, "showSocial")),
+      section("Sending messages", null,
+        textField("Form access key (from web3forms.com). Without it, messages are not sent.", d.contact, "formKey"))
+    ];
+  }
+}
+
+function siteView(body) {
+  const d = state.lists.site;
+  d.nav = d.nav || []; d.social = d.social || []; d.fonts = d.fonts || {}; d.brand = d.brand || "";
+  d.about.paragraphs = d.about.paragraphs || []; d.about.facts = d.about.facts || []; d.footer.links = d.footer.links || [];
+  d.pages = d.pages || {}; ["home", "writing", "photos", "quotes"].forEach(k => d.pages[k] = d.pages[k] || {});
+  section.n = 0;
+  siteSections(d).forEach(s => body.append(s));
+  if (state.view.name === "page") {
+    const ex = (state.lists.pages.extra = state.lists.pages.extra || {}), k = state.view.arg;
+    ex[k] = ex[k] || [];
+    body.append(section("Extra sections", "Add your own sections to the bottom of this page: text, images, videos and more.", blockBuilder(ex[k], "extra:" + k)));
+  }
+}
+
+// ---------- Page builder: sections you can add to any page ----------
+const uid = () => Math.random().toString(36).slice(2, 8);
+const ALIGN = { k: "align", type: "select", options: [["left", "Left"], ["center", "Centre"]], label: "Alignment" };
+const FONTF = { k: "font", type: "font", label: "Font (optional)" };
+const MD = "Blank line between paragraphs. **bold**, *italic*, [link](https://...). Start a line with ## for a small heading or > for a highlighted line.";
+const BLOCKS = {
+  heading: { name: "Heading", desc: "A title for a section", summary: b => b.text,
+    blank: () => ({ type: "heading", text: "A new heading", level: "2" }),
+    fields: [{ k: "text", label: "Heading text" }, { k: "level", type: "select", options: [["2", "Large"], ["3", "Medium"]], label: "Size" }, ALIGN, FONTF] },
+  text: { name: "Text", desc: "One or more paragraphs", summary: b => b.text,
+    blank: () => ({ type: "text", text: "Write something here." }),
+    fields: [{ k: "text", type: "textarea", tall: true, label: MD }, ALIGN, FONTF] },
+  image: { name: "Image", desc: "A single picture", summary: b => b.caption || b.alt || (b.src ? "Image" : "No image yet"),
+    blank: () => ({ type: "image", src: "", alt: "", size: "full" }),
+    fields: [{ k: "src", type: "image", label: "Image" }, { k: "alt", label: "Short description of the picture (for screen readers)" }, { k: "caption", label: "Caption (optional)" },
+      { k: "size", type: "select", options: [["full", "Full width"], ["medium", "Medium"], ["small", "Small"]], label: "Size" }, ALIGN, { k: "link", type: "url", label: "Link when clicked (optional)" }] },
+  gallery: { name: "Image gallery", desc: "Several pictures in a grid", summary: b => (b.images || []).length + " images",
+    blank: () => ({ type: "gallery", cols: "3", images: [] }),
+    fields: [{ k: "images", type: "images" }, { k: "cols", type: "select", options: [["2", "2 columns"], ["3", "3 columns"], ["4", "4 columns"]], label: "Columns" }] },
+  video: { name: "Video", desc: "A YouTube or Vimeo video", summary: b => b.url || "No link yet",
+    blank: () => ({ type: "video", url: "" }),
+    fields: [{ k: "url", label: "YouTube or Vimeo link" }, { k: "caption", label: "Caption (optional)" }] },
+  button: { name: "Button", desc: "A button that links somewhere", summary: b => b.label,
+    blank: () => ({ type: "button", label: "Click here", url: "#contact", style: "primary" }),
+    fields: [{ k: "label", label: "Button text" }, { k: "url", label: "Goes to (for example #contact or https://...)" },
+      { k: "style", type: "select", options: [["primary", "Solid yellow"], ["outline", "Outline"]], label: "Style" }, ALIGN, FONTF] },
+  quote: { name: "Quote", desc: "A highlighted quote", summary: b => b.text,
+    blank: () => ({ type: "quote", text: "A line worth remembering.", author: "" }),
+    fields: [{ k: "text", type: "textarea", label: "Quote" }, { k: "author", label: "Who said it (optional)" }, { k: "url", type: "url", label: "Link to the source (optional)" }, FONTF] },
+  columns: { name: "Image and text", desc: "A picture beside some words", summary: b => b.text,
+    blank: () => ({ type: "columns", src: "", alt: "", text: "Write something here.", side: "left" }),
+    fields: [{ k: "src", type: "image", label: "Image" }, { k: "alt", label: "Short description of the picture" }, { k: "text", type: "textarea", tall: true, label: MD },
+      { k: "side", type: "select", options: [["left", "Image on the left"], ["right", "Image on the right"]], label: "Layout" }] },
+  list: { name: "List", desc: "Bullets or numbers", summary: b => (b.text || "").split("\n")[0],
+    blank: () => ({ type: "list", style: "bullets", text: "First item\nSecond item\nThird item" }),
+    fields: [{ k: "text", type: "textarea", label: "One item per line" }, { k: "style", type: "select", options: [["bullets", "Bullets"], ["numbers", "Numbers"]], label: "Style" }] },
+  embed: { name: "Embed", desc: "Maps, music, calendars and forms", summary: b => b.code ? "Embedded content" : "No code yet",
+    blank: () => ({ type: "embed", code: "", height: "400" }),
+    fields: [{ k: "code", type: "textarea", label: "Paste the embed code, or the https:// link, from the service" }, { k: "height", type: "number", label: "Height in pixels" }] },
+  divider: { name: "Divider line", desc: "A thin line between sections", summary: () => "", blank: () => ({ type: "divider" }), fields: [] },
+  spacer: { name: "Space", desc: "Empty space", summary: b => (b.height || 40) + " px", blank: () => ({ type: "spacer", height: "40" }), fields: [{ k: "height", type: "number", label: "Height in pixels" }] }
+};
+const TEMPLATES = [
+  { name: "Hero banner", desc: "Big heading, intro text and a button", make: () => [
+    { type: "heading", level: "2", text: "A big, friendly headline" }, { type: "text", text: "A short introduction that tells people what this is about." }, { type: "button", label: "Get in touch", url: "#contact", style: "primary" }] },
+  { name: "Image and text", desc: "A picture on one side, words on the other", make: () => [{ type: "columns", src: "", alt: "", side: "left", text: "## A small heading\n\nTell the story behind the picture here." }] },
+  { name: "Call to action", desc: "Centred heading, text and a button", make: () => [
+    { type: "heading", level: "2", align: "center", text: "Ready to talk?" }, { type: "text", align: "center", text: "One or two lines inviting people to take the next step." }, { type: "button", align: "center", label: "Write to me", url: "#contact", style: "primary" }] },
+  { name: "Photo gallery", desc: "Heading with a grid of pictures", make: () => [{ type: "heading", level: "2", text: "Gallery" }, { type: "gallery", cols: "3", images: [] }] },
+  { name: "Video section", desc: "Heading, a video and a note", make: () => [{ type: "heading", level: "2", text: "Watch" }, { type: "video", url: "" }, { type: "text", text: "A few words about the video." }] },
+  { name: "Highlighted quote", desc: "A large quote with its author", make: () => [{ type: "quote", text: "A line worth remembering.", author: "" }] },
+  { name: "Key points", desc: "Heading with a short list", make: () => [{ type: "heading", level: "2", text: "What to know" }, { type: "list", style: "bullets", text: "First point\nSecond point\nThird point" }] }
+];
+
+state.openBlocks = new Set(); state.picker = null;
+let dragFrom = null;
+
+function markPagesDirty() {
+  state.dirty.pages = true; updateStatus();
+  const v = state.view;
+  PV.target = v.name === "cpage" ? "blocks-custom" : v.name === "page" ? "blocks-" + v.arg : null;
+  refreshPreview();
+}
+
+function imageInput(lab, holder, key, afterChange) {
+  const inp = el("input"); inp.type = "file"; inp.accept = "image/jpeg,image/png,image/webp";
+  const pv = el("img", "preview" + (holder[key] ? " show" : "")); pv.alt = "";
+  if (holder[key]) pv.src = imgSrc("pages", holder[key]);
+  inp.onchange = async () => {
+    const f = inp.files[0]; if (!f) return;
+    try {
+      const b64 = await shrink(f), path = `img/${slug(holder.alt || "image")}-${uid()}.jpg`;
+      state.pending.pages[path] = b64; holder[key] = path;
+      pv.src = "data:image/jpeg;base64," + b64; pv.className = "preview show";
+      markPagesDirty(); if (afterChange) afterChange();
+    } catch (e) { toast(e.message, true); inp.value = ""; }
+  };
+  lab.append(inp, pv);
+}
+
+function galleryEditor(b) {
+  const box = el("div", "builder"); b.images = b.images || [];
+  b.images.forEach((im, i) => {
+    const row = el("div", "rowbox"), lab = el("label"); lab.append("Picture " + (i + 1));
+    imageInput(lab, im, "src");
+    const alt = textField("Short description", im, "alt", { mark: markPagesDirty });
+    row.append(rowTools(b.images, i, markPagesDirty), lab, alt); box.append(row);
+  });
+  const add = el("label"); add.append("Add pictures (you can choose several)");
+  const inp = el("input"); inp.type = "file"; inp.multiple = true; inp.accept = "image/jpeg,image/png,image/webp";
+  inp.onchange = async () => {
+    for (const f of inp.files) {
+      try { const b64 = await shrink(f), path = `img/gallery-${uid()}.jpg`; state.pending.pages[path] = b64; b.images.push({ src: path, alt: "" }); }
+      catch (e) { toast(e.message, true); }
+    }
+    markPagesDirty(); renderView();
+  };
+  add.append(inp); box.append(add); return box;
+}
+
+function blockField(b, f) {
+  if (f.type === "images") return galleryEditor(b);
+  const lab = el("label"); lab.append(f.label);
+  if (f.type === "image") { imageInput(lab, b, f.k, () => renderView()); return lab; }
+  let inp;
+  if (f.type === "select") {
+    inp = el("select"); f.options.forEach(([v, n]) => inp.add(new Option(n, v))); inp.value = b[f.k] || f.options[0][0];
+    inp.onchange = () => { b[f.k] = inp.value; markPagesDirty(); };
+  } else if (f.type === "font") {
+    inp = el("select"); inp.add(new Option("Default font", ""));
+    window.FONT_LIST.forEach(n => { const o = new Option(n, n); o.style.fontFamily = fam(n); inp.add(o); });
+    inp.value = b.font || "";
+    inp.onchange = () => { if (inp.value) b.font = inp.value; else delete b.font; markPagesDirty(); };
+  } else {
+    inp = f.type === "textarea" ? el("textarea") : el("input");
+    if (f.tall) inp.className = "tall";
+    if (f.type === "url") inp.type = "url"; if (f.type === "number") inp.type = "number";
+    inp.value = b[f.k] || "";
+    inp.oninput = () => { b[f.k] = inp.value; markPagesDirty(); };
+  }
+  lab.append(inp); return lab;
+}
+
+function blockCard(blocks, i) {
+  const b = blocks[i], def = BLOCKS[b.type];
+  const card = el("div", "bcard"), open = state.openBlocks.has(b.id);
+  const head = el("div", "bhead");
+  const handle = el("span", "handle", "☰"); handle.title = "Drag to move";
+  handle.onmousedown = () => { card.draggable = true; };
+  card.ondragstart = e => { dragFrom = { blocks, i }; e.dataTransfer.effectAllowed = "move"; try { e.dataTransfer.setData("text/plain", String(i)); } catch {} };
+  card.ondragend = () => { card.draggable = false; dragFrom = null; document.querySelectorAll(".bcard.over").forEach(c => c.classList.remove("over")); };
+  card.ondragover = e => { if (dragFrom && dragFrom.blocks === blocks) { e.preventDefault(); card.classList.add("over"); } };
+  card.ondragleave = () => card.classList.remove("over");
+  card.ondrop = e => {
+    e.preventDefault(); card.classList.remove("over");
+    if (!dragFrom || dragFrom.blocks !== blocks || dragFrom.i === i) return;
+    const [m] = blocks.splice(dragFrom.i, 1); blocks.splice(i, 0, m); dragFrom = null; markPagesDirty(); renderView();
+  };
+  const t = el("button", "btitle"); t.type = "button";
+  const sum = (def.summary(b) || "").replace(/\s+/g, " ").trim();
+  t.append(el("b", "", def.name), el("small", "", sum.slice(0, 70) || " "));
+  t.onclick = () => { if (open) state.openBlocks.delete(b.id); else state.openBlocks.add(b.id); renderView(); };
+  const rerender = () => { markPagesDirty(); renderView(); };
+  const up = btn("↑", () => { [blocks[i - 1], blocks[i]] = [blocks[i], blocks[i - 1]]; rerender(); }, i === 0, "tool");
+  const down = btn("↓", () => { [blocks[i + 1], blocks[i]] = [blocks[i], blocks[i + 1]]; rerender(); }, i === blocks.length - 1, "tool");
+  const copy = btn("Copy", () => { const c = JSON.parse(JSON.stringify(b)); c.id = uid(); blocks.splice(i + 1, 0, c); state.openBlocks.add(c.id); rerender(); }, false, "tool");
+  const del = btn("✕", () => { if (!confirm("Remove this section?")) return; blocks.splice(i, 1); rerender(); }, false, "tool danger");
+  up.setAttribute("aria-label", "Move up"); down.setAttribute("aria-label", "Move down"); del.setAttribute("aria-label", "Remove section");
+  head.append(handle, t, up, down, copy, del); card.append(head);
+  if (open) { const body = el("div", "bbody"); def.fields.forEach(f => body.append(blockField(b, f))); if (!def.fields.length) body.append(el("p", "hint", "Nothing to set for this one.")); card.append(body); }
+  return card;
+}
+
+function pickBtn(name, desc, fn) {
+  const b = el("button", "pick"); b.type = "button"; b.onclick = fn; b.append(el("b", "", name), el("small", "", desc)); return b;
+}
+
+function addPicker(blocks) {
+  const box = el("div", "picker");
+  const insert = items => { items.forEach(b => { b.id = uid(); blocks.push(b); state.openBlocks.add(b.id); }); state.picker = null; markPagesDirty(); renderView(); };
+  box.append(el("h4", "gtitle", "Single blocks"));
+  const grid = el("div", "pgrid");
+  Object.values(BLOCKS).forEach(def => grid.append(pickBtn(def.name, def.desc, () => insert([def.blank()]))));
+  box.append(grid, el("h4", "gtitle", "Ready-made sections"));
+  const g2 = el("div", "pgrid");
+  TEMPLATES.forEach(t => g2.append(pickBtn(t.name, t.desc, () => insert(t.make()))));
+  box.append(g2, btn("Close", () => { state.picker = null; renderView(); }));
+  return box;
+}
+
+function blockBuilder(blocks, key) {
+  const box = el("div", "builder");
+  if (!blocks.length) box.append(el("p", "empty", "No sections yet. Press the button below to add one."));
+  blocks.forEach((b, i) => { if (!b.id) b.id = uid(); box.append(blockCard(blocks, i)); });
+  box.append(btn(state.picker === key ? "Hide the section list" : "+ Add a section", () => { state.picker = state.picker === key ? null : key; renderView(); }, false, "primary"));
+  if (state.picker === key) box.append(addPicker(blocks));
+  return box;
+}
+
+// ---------- Your own pages ----------
+function newPage() {
+  const pages = state.lists.pages; pages.custom = pages.custom || [];
+  let base = slug("new page"), n = base, i = 2;
+  while (pages.custom.some(p => p.slug === n)) n = base + "-" + i++;
+  pages.custom.push({ slug: n, title: "New page", showTitle: true, blocks: [] });
+  markPagesDirty(); go("cpage", "", pages.custom.length - 1);
+}
+
+function cpageView(body) {
+  const d = state.lists.site, pages = state.lists.pages, p = (pages.custom || [])[state.view.idx];
+  if (!p) { go("home"); return; }
+  const url = "#page/" + p.slug, nav = () => d.nav.some(n => n.url === url);
+  section.n = 0;
+  if (!(("cpage::Sections") in state.open)) state.open["cpage::Sections"] = true;
+  const menuLab = el("label", "check"), cb = el("input"); cb.type = "checkbox"; cb.checked = nav();
+  cb.onchange = () => { if (cb.checked && !nav()) d.nav.push({ label: p.title, url }); else if (!cb.checked) d.nav = d.nav.filter(n => n.url !== url); markSiteDirty(); };
+  menuLab.append(cb, "Show this page in the menu");
+  const syncTitle = () => { const n = d.nav.find(x => x.url === url); if (n) { n.label = p.title; markSiteDirty(); } markPagesDirty(); };
+  body.append(section("Page details", null,
+    textField("Page title", p, "title", { mark: syncTitle }),
+    el("p", "hint", "Web address: " + location.host + "/" + url),
+    checkField("Show the title at the top of the page", p, "showTitle", markPagesDirty), menuLab));
+  p.blocks = p.blocks || [];
+  body.append(section("Sections", "Build the page with blocks. Drag the ☰ handle to reorder.", blockBuilder(p.blocks, "custom:" + p.slug)));
+  const dz = el("div", "dangerzone");
+  dz.append(btn("Delete this page", () => {
+    if (!confirm(`Delete the page "${p.title}"? It is removed from the site when you press Save to site.`)) return;
+    pages.custom.splice(state.view.idx, 1); d.nav = d.nav.filter(n => n.url !== url);
+    markSiteDirty(); markPagesDirty(); go("home");
+  }, false, "danger"));
+  body.append(dz);
+}
+
+// ---------- Team (owner only) ----------
+async function saveTeam(users) {
+  try {
+    const r = await api("/api/team", { method: "PUT", headers: { "Content-Type": "application/json", "X-Admin": "1" }, body: JSON.stringify({ users }) });
+    state.team.users = r.users; toast("Team saved.");
+  } catch (e) { toast(e.message, true); }
+  renderView();
+}
+
+function teamView(body) {
+  const t = state.team;
+  body.append(el("p", "tip", "Team members sign in with their own GitHub account. They do not need any keys or access to your repository, only a GitHub username that you add here."));
+  if (!t) { body.append(el("p", "empty", "Loading...")); return; }
+  if (!t.tokenConfigured) body.append(el("p", "tip", "Not ready yet. Add GITHUB_TOKEN in Vercel (see TEAM-SETUP.md) so that team members can save changes and this list can be stored."));
+  body.append(el("h3", "gtitle", "People who can edit"));
+  const ul = el("ul", "navlist");
+  const row = (name, sub, action) => {
+    const li = el("li", "irow"); li.style.cursor = "default";
+    const d = el("div"); d.append(el("b", "", name), el("small", "", sub)); li.append(d);
+    if (action) li.append(action);
+    ul.append(li);
+  };
+  row(t.owner, "Owner (you)");
+  t.users.forEach(u => row(u.login, "Editor", btn("Remove", () => {
+    if (!confirm(`Remove ${u.login}? They will not be able to sign in any more.`)) return;
+    saveTeam(t.users.filter(x => x.login !== u.login));
+  }, false, "tool danger")));
+  body.append(ul);
+  body.append(el("h3", "gtitle", "Add someone"));
+  const lab = el("label"); lab.append("Their GitHub username");
+  const inp = el("input"); inp.placeholder = "for example octocat"; inp.autocomplete = "off";
+  const add = btn("Add to the team", () => {
+    const login = inp.value.trim().replace(/^@/, "");
+    if (!/^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$/.test(login)) { toast("That does not look like a GitHub username.", true); return; }
+    if (t.users.some(u => u.login.toLowerCase() === login.toLowerCase())) { toast("They are already on the team.", true); return; }
+    saveTeam([...t.users, { login }]);
+  }, false, "primary");
+  inp.onkeydown = e => { if (e.key === "Enter") add.click(); };
+  lab.append(inp);
+  const stack = el("div", "stack");
+  stack.append(lab, add, el("p", "hint", "Send them this address and ask them to press Sign in with GitHub: " + location.origin + "/admin.html"));
+  body.append(stack);
+}
+
+// ---------- Tracking and links ----------
+const UTM_PRESETS = [["LinkedIn", "linkedin", "social"], ["Instagram", "instagram", "social"], ["Facebook", "facebook", "social"], ["X", "x", "social"], ["Email", "email", "email"], ["WhatsApp", "whatsapp", "message"]];
+state.utm = { dest: "", source: "", medium: "", campaign: "", content: "" };
+
+function utmDestinations() {
+  const out = [["", "Home page"]];
+  PAGES.filter(p => p[0] !== "home").forEach(([id, name]) => out.push(["#" + id, name]));
+  (state.lists.photos || []).forEach(p => { if (p.slug) out.push(["#photo/" + p.slug, "Photo: " + (p.caption || p.place)]); });
+  (state.lists.writing || []).forEach(w => { if (w.pub === "site" && w.slug) out.push(["#article/" + w.slug, "Article: " + w.t]); });
+  ((state.lists.pages || {}).custom || []).forEach(p => out.push(["#page/" + p.slug, "Page: " + p.title]));
+  return out;
+}
+
+function utmUrl() {
+  const u = state.utm, clean = v => encodeURIComponent(v.trim().toLowerCase().replace(/\s+/g, "_"));
+  const params = [["utm_source", u.source], ["utm_medium", u.medium], ["utm_campaign", u.campaign], ["utm_content", u.content]]
+    .filter(([, v]) => v.trim()).map(([k, v]) => k + "=" + clean(v)).join("&");
+  return location.origin + "/" + (params ? "?" + params : "") + u.dest;
+}
+
+function trackView(body) {
+  const d = state.lists.site; d.analytics = d.analytics || { gaId: "" };
+  section.n = 0;
+  ["track::Google Analytics", "track::Link builder"].forEach(k => { if (!(k in state.open)) state.open[k] = true; });
+  body.append(section("Google Analytics", "Every page, photo and article is counted as its own page, with clicks on buttons and links to other sites. Create a free account at analytics.google.com, add your website, and paste the Measurement ID (it starts with G-).",
+    textField("Measurement ID", d.analytics, "gaId"),
+    el("p", "hint", "Visitors from EU countries may need to be asked about cookies. Add a short privacy note to your site if you are unsure.")));
+
+  const out = el("input"); out.readOnly = true; out.value = utmUrl();
+  const refresh = () => { out.value = utmUrl(); };
+  const field = (label, key, ph) => {
+    const lab = el("label"); lab.append(label); const i = el("input"); i.placeholder = ph || ""; i.value = state.utm[key];
+    i.oninput = () => { state.utm[key] = i.value; refresh(); }; lab.append(i); return { lab, i };
+  };
+  const dest = el("label"); dest.append("Where should the link go?");
+  const sel = el("select"); utmDestinations().forEach(([v, n]) => sel.add(new Option(n, v))); sel.value = state.utm.dest;
+  sel.onchange = () => { state.utm.dest = sel.value; refresh(); }; dest.append(sel);
+  const src = field("Where will you share it? (source)", "source", "for example linkedin");
+  const med = field("What kind of place is it? (medium)", "medium", "for example social");
+  const cam = field("Campaign name", "campaign", "for example spring_launch");
+  const con = field("Which post or button? (optional)", "content", "for example comment_link");
+  const presets = el("div", "presets");
+  UTM_PRESETS.forEach(([n, s, m]) => presets.append(btn(n, () => { state.utm.source = s; state.utm.medium = m; src.i.value = s; med.i.value = m; refresh(); }, false, "tool")));
+  const outLab = el("label"); outLab.append("Your tracked link", out);
+  const copy = btn("Copy link", async () => { try { await navigator.clipboard.writeText(out.value); toast("Link copied."); } catch { out.select(); toast("Press Ctrl+C to copy.", true); } }, false, "primary");
+  body.append(section("Link builder", "Use these links when you share your site somewhere else, such as LinkedIn or an email. In Google Analytics, people who arrive through them show up under your campaign name, page by page and photo by photo. Do not add them to links inside your own site.",
+    dest, el("div", "hint", "Quick fill:"), presets, src.lab, med.lab, cam.lab, con.lab, outLab, copy));
+}
+
+// ---------- Companies I have worked with ----------
+// Turns an uploaded logo into something that works in one colour. SVG and transparent PNG are kept; a logo on a white background is converted.
+async function prepLogo(file) {
+  if (file.type === "image/svg+xml" || /\.svg$/i.test(file.name)) {
+    const text = await file.text();
+    if (text.length > 300000) throw new Error("That logo file is too large.");
+    if (!/<svg[\s>]/i.test(text) || /<script|\son[a-z]+\s*=|javascript:|<foreignObject|<iframe|<!ENTITY|<embed|<object/i.test(text)) throw new Error("That SVG has parts that are not allowed. Please export a plain logo.");
+    return { ext: "svg", b64: btoa(unescape(encodeURIComponent(text))), note: "" };
+  }
+  const url = URL.createObjectURL(file);
+  const im = await new Promise((ok, bad) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => bad(new Error("That logo could not be read. Use SVG, PNG or WebP.")); i.src = url; });
+  URL.revokeObjectURL(url);
+  const scale = Math.min(1, 600 / Math.max(im.width, im.height)), w = Math.max(1, Math.round(im.width * scale)), h = Math.max(1, Math.round(im.height * scale));
+  const c = document.createElement("canvas"); c.width = w; c.height = h;
+  const g = c.getContext("2d"); g.drawImage(im, 0, 0, w, h);
+  const data = g.getImageData(0, 0, w, h), px = data.data;
+  let see = false; for (let i = 3; i < px.length; i += 4) if (px[i] < 250) { see = true; break; }
+  let note = "";
+  if (!see) {
+    const lum = (x, y) => { const k = (y * w + x) * 4; return 0.299 * px[k] + 0.587 * px[k + 1] + 0.114 * px[k + 2]; };
+    const corners = (lum(0, 0) + lum(w - 1, 0) + lum(0, h - 1) + lum(w - 1, h - 1)) / 4;
+    if (corners > 200) {
+      for (let i = 0; i < px.length; i += 4) { const l = 0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2]; px[i] = px[i + 1] = px[i + 2] = 0; px[i + 3] = Math.max(0, Math.min(255, (255 - l) * 1.6)); }
+      g.putImageData(data, 0, 0); note = "The white background was removed.";
+    } else note = "This logo has a solid background, so it may show as a block. A PNG or SVG with a transparent background works best.";
+  }
+  return { ext: "png", b64: c.toDataURL("image/png").split(",")[1], note };
+}
+
+function logoField(item) {
+  const lab = el("label"); lab.append("Logo (SVG or PNG with a transparent background works best)");
+  const prev = el("div", "logoprev");
+  const draw = () => {
+    prev.textContent = "";
+    if (item.src) { const im = el("img"); im.alt = ""; im.src = imgSrc("site", item.src); prev.append(im); }
+    else prev.append(el("span", "", "No logo yet. The company name is shown as text."));
+  };
+  draw();
+  const inp = el("input"); inp.type = "file"; inp.accept = "image/svg+xml,image/png,image/webp,image/jpeg";
+  inp.onchange = async () => {
+    const f = inp.files[0]; if (!f) return;
+    try {
+      const r = await prepLogo(f), path = `img/logo-${slug(item.name || "company")}-${uid()}.${r.ext}`;
+      state.pending.site[path] = r.b64; item.src = path; draw(); markSiteDirty();
+      toast(r.note || "Logo added.", !!r.note && r.note.startsWith("This logo"));
+    } catch (e) { toast(e.message, true); inp.value = ""; }
+  };
+  lab.append(prev, inp);
+  if (item.src) lab.append(btn("Remove logo", () => { item.src = ""; draw(); markSiteDirty(); }, false, "tool"));
+  return lab;
+}
+
+function clientsEditor(d) {
+  const c = d.about.clients = d.about.clients || { title: "Companies I have worked with", items: [] };
+  c.items = c.items || [];
+  const kids = [textField("Section title", c, "title", { font: "clients-title" })];
+  c.items.forEach((item, i) => {
+    const box = el("div", "rowbox"), cols = el("div", "cols");
+    cols.append(textField("Company name", item, "name"), textField("Website (the logo links here)", item, "url"));
+    box.append(rowTools(c.items, i), cols, logoField(item)); kids.push(box);
+  });
+  kids.push(btn("+ Add a company", () => { c.items.push({ name: "", src: "", url: "https://" }); markSiteDirty(); renderView(); }));
+  kids.push(fontRow("Font for company names (when there is no logo)", "clients-list"));
+  return section("Companies I have worked with", "Shown at the bottom of the About page as a row of black and white logos. Each logo links to the company's website and turns yellow when someone points at it.", ...kids);
+}
+
+// ---------- Saving ----------
+async function saveTab(tab) {
+  const list = state.lists[tab];
+  if (tab === "site") {
+    list.nav = list.nav.filter(x => x.label.trim());
+    list.social = list.social.filter(x => x.label.trim());
+    list.footer.links = list.footer.links.filter(x => x.label.trim());
+    list.about.facts = list.about.facts.filter(x => x.label.trim() || x.text.trim());
+    list.about.paragraphs = list.about.paragraphs.map(t => t.trim()).filter(Boolean);
+  }
+  const used = new Set();
+  if (Array.isArray(list)) list.forEach(x => used.add(x.img));
+  else (function walk(o) { if (Array.isArray(o)) o.forEach(walk); else if (o && typeof o === "object") for (const [k, v] of Object.entries(o)) { if (k === "src" && typeof v === "string") used.add(v); else walk(v); } })(list);
+  const images = Object.entries(state.pending[tab]).filter(([p]) => used.has(p)).map(([path, base64]) => ({ path, base64 }));
+  const r = await api("/api/content", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", "X-Admin": "1" },
+    body: JSON.stringify({ file: tab, data: list, sha: state.shas[tab], images })
+  });
+  images.forEach(i => state.previews[i.path] = i.base64); // site may not have redeployed yet
+  state.shas[tab] = r.sha; state.dirty[tab] = false; state.pending[tab] = {};
+}
+
+// Saves everything that changed, whether it was typed here or on the page itself.
+async function save() {
+  const tabs = Object.keys(state.dirty).filter(t => state.dirty[t]);
+  if (!tabs.length) return;
+  $("save").disabled = true; $("status").textContent = "Saving...";
+  try { for (const t of tabs) await saveTab(t); toast("Saved. Your site updates in about a minute."); }
+  catch (e) { toast(e.message, true); }
+  if (state.view.name !== "edit") renderView();
+  updateStatus();
+}
+
+// ---------- Live preview ----------
+const PV = { timer: null, scrollY: 0, target: null };
+
+function pushPreview() {
+  const images = { ...state.previews };
+  Object.values(state.pending).forEach(m => Object.assign(images, m));
+  const data = { ...state.lists };
+  try { sessionStorage.setItem("previewData", JSON.stringify({ ...data, __images: images })); }
+  catch { try { sessionStorage.setItem("previewData", JSON.stringify(data)); } catch {} }
+}
+
+const pvUrl = hash => "/index.html?preview=1" + (state.editMode ? "&edit=1" : "") + (hash || "");
+
+function refreshPreview(hash) {
+  const f = $("pv");
+  if (!f || $("previewPane").hidden) return;
+  clearTimeout(PV.timer);
+  PV.timer = setTimeout(() => {
+    pushPreview();
+    let y = 0; try { y = f.contentWindow.scrollY; } catch {}
+    PV.scrollY = hash ? 0 : y;
+    try { if (hash) f.contentWindow.location.hash = hash; f.contentWindow.location.reload(); }
+    catch { f.src = pvUrl(hash); }
+  }, 450);
+}
+
+// Move the preview to the page being edited, only when it is not already there.
+function showInPreview(hash) {
+  const f = $("pv"); if (!f || $("previewPane").hidden) return;
+  let cur = ""; try { cur = f.contentWindow.location.hash; } catch {}
+  if (cur !== hash) refreshPreview(hash);
+}
+
+$("pv").onload = () => {
+  const y = PV.scrollY, target = PV.target; PV.scrollY = 0; PV.target = null;
+  if (target) {
+    let n = 0;
+    const t = setInterval(() => {
+      try { const e = $("pv").contentDocument.getElementById(target); if (e && e.children.length) { e.scrollIntoView({ block: "center" }); clearInterval(t); } } catch { clearInterval(t); }
+      if (++n > 20) clearInterval(t);
+    }, 100);
+    return;
+  }
+  if (!y) return;
+  let n = 0;
+  const t = setInterval(() => {
+    try {
+      const m = $("pv").contentDocument.getElementById("menu");
+      if (m && m.children.length) { $("pv").contentWindow.scrollTo(0, y); clearInterval(t); }
+    } catch { clearInterval(t); }
+    if (++n > 20) clearInterval(t);
+  }, 100);
+};
+$("pvBack").onclick = () => {
+  try {
+    const d = $("pv").contentDocument, lb = d.getElementById("lightbox");
+    if (lb && lb.open) lb.close(); else $("pv").contentWindow.history.back();
+  } catch {}
+};
+$("pvRefresh").onclick = () => { PV.scrollY = 0; refreshPreview(); };
+
+function loadAdminFonts() {
+  const url = window.fontsUrl(window.FONT_LIST);
+  if (url) { const l = document.createElement("link"); l.rel = "stylesheet"; l.href = url; document.head.append(l); }
+}
+
+$("editToggle").onclick = () => {
+  state.editMode = !state.editMode;
+  $("editToggle").setAttribute("aria-pressed", String(state.editMode));
+  $("editToggle").textContent = "Edit on the page: " + (state.editMode ? "On" : "Off");
+  let h = ""; try { h = $("pv").contentWindow.location.hash; } catch {}
+  pushPreview(); $("pv").src = pvUrl(h);
+};
+
+// Edits typed straight into the page arrive here.
+const setPath = (o, path, v) => { const k = path.split("."); const last = k.pop(); k.reduce((a, x) => a[x], o)[last] = v; };
+window.addEventListener("message", async e => {
+  const m = e.data;
+  if (e.origin !== location.origin || e.source !== $("pv").contentWindow || !m || m.source !== "site-edit") return;
+  try {
+    if (m.type === "edit" || m.type === "font") {
+      const file = m.type === "font" ? "site" : m.file;
+      await load(file);
+      if (m.type === "edit") setPath(state.lists[file], m.path, m.value);
+      else { const d = state.lists.site; d.fonts = d.fonts || {}; if (m.font) d.fonts[m.id] = m.font; else delete d.fonts[m.id]; }
+      state.dirty[file] = true; updateStatus();
+    } else if (m.type === "blur") {
+      if (state.view.name !== "edit") renderView();
+    }
+  } catch (err) { toast(err.message, true); }
+});
+
+function startPreview() {
+  $("shell").classList.remove("nopv"); $("previewPane").hidden = false;
+  pushPreview();
+  $("pv").src = pvUrl(viewHash());
+}
+
+async function init() {
+  let me;
+  try { me = await api("/api/me"); } catch { showLogin(); return; }
+  state.me = me; $("who-name").textContent = me.login + (me.role === "owner" ? "" : " (editor)"); $("who").hidden = false; $("topctl").hidden = false;
+  $("login").hidden = true; $("app").hidden = false;
+  try {
+    await Promise.all(["photos", "writing", "quotes", "site", "pages"].map(load));
+    loadAdminFonts(); renderView(); startPreview();
+  } catch (e) {
+    $("sideBody").textContent = "Could not load your content. " + e.message;
+    toast("Could not load your content. " + e.message, true);
+  }
+}
+
+$("back").onclick = back;
+$("save").onclick = save;
+$("signout").onclick = async () => { await fetch("/api/me", { method: "POST" }); showLogin(); };
+window.addEventListener("beforeunload", e => { if (Object.values(state.dirty).some(Boolean)) { e.preventDefault(); e.returnValue = ""; } });
+init();
+</script>
+</body>
+</html>

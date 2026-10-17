@@ -1,0 +1,26 @@
+[
+  {
+    "img": "img/sample-1.svg",
+    "place": "First place",
+    "when": "March 2026",
+    "story": [
+      "This is a sample photo story. Open the photo in the admin to replace the picture and write your own."
+    ],
+    "slug": "first-place"
+  },
+  {
+    "img": "img/sample-2.svg",
+    "place": "Second place",
+    "caption": "A caption instead of the place name",
+    "when": "February 2026",
+    "story": [],
+    "slug": "second-place"
+  },
+  {
+    "img": "img/sample-3.svg",
+    "place": "Third place",
+    "when": "January 2026",
+    "story": [],
+    "slug": "third-place"
+  }
+]
