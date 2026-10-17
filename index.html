@@ -884,7 +884,7 @@ setText("about-h1", SITE.about.heading);
   const pt = SITE.about.portrait || {}, wrap = document.getElementById("about-wrap"), fig = document.getElementById("about-portrait");
   const on = !!(pt.show && pt.src);
   fig.hidden = !on; wrap.classList.toggle("has-portrait", on); wrap.classList.toggle("right", on && pt.side === "right");
-  if (on) { const im = document.getElementById("about-portrait-img"); im.src = imgSrc(pt.src); im.alt = pt.alt || ""; im.style.transform = +pt.zoom > 1 ? `scale(${Math.min(+pt.zoom, 2.5)})` : ""; }
+  if (on) { const im = document.getElementById("about-portrait-img"); im.src = imgSrc(pt.src); im.alt = pt.alt || ""; im.style.transform = +pt.zoom > 1 ? `scale(${Math.min(+pt.zoom, 2.5)})` : ""; im.style.filter = pt.bw ? "grayscale(1) contrast(1.08)" : ""; }
 }
 SITE.about.paragraphs.forEach(t => { const p = document.createElement("p"); p.textContent = t; document.getElementById("about-paras").append(p); });
 const facts = document.getElementById("about-facts");
