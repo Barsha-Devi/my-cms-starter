@@ -216,15 +216,15 @@ article.post .pull { border-left: 2px solid var(--accent); padding-left: 20px; f
 .about { display: grid; max-width: 680px; }
 /* About page with a portrait beside the text */
 .about.has-portrait { max-width: 980px; gap: 32px; }
-.portrait { margin: 0; position: relative; max-width: 320px; padding: 0 12px 12px 0; }
+.portrait { margin: 0; position: relative; max-width: 340px; padding: 0 12px 12px 0; }
 .portrait::before { content: ""; position: absolute; left: 12px; top: 12px; right: 0; bottom: 0; border: 2px solid var(--accent); border-radius: 4px; pointer-events: none; }
 .pframe { position: relative; aspect-ratio: 3 / 4; overflow: hidden; border: 1px solid var(--line); border-radius: 4px; background: var(--panel); }
-.pframe img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; display: block; }
+.pframe img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; display: block; transform-origin: 60% 42%; }
 .about.has-portrait #about-paras p:nth-child(1) { font-family: var(--display); font-size: var(--s-lg); line-height: 1.3; color: var(--text); }
 .about.has-portrait #about-paras p:last-child:not(:first-child) { border-left: 2px solid var(--accent); padding-left: 16px; color: var(--text); }
 @media (min-width: 820px) {
-  .about.has-portrait { grid-template-columns: 280px minmax(0, 1fr); gap: 56px; align-items: center; }
-  .about.has-portrait.right { grid-template-columns: minmax(0, 1fr) 280px; }
+  .about.has-portrait { grid-template-columns: 300px minmax(0, 1fr); gap: 56px; align-items: center; }
+  .about.has-portrait.right { grid-template-columns: minmax(0, 1fr) 300px; }
   .about.has-portrait.right .portrait { order: 2; justify-self: end; }
 }
 
@@ -883,7 +883,7 @@ setText("about-h1", SITE.about.heading);
   const pt = SITE.about.portrait || {}, wrap = document.getElementById("about-wrap"), fig = document.getElementById("about-portrait");
   const on = !!(pt.show && pt.src);
   fig.hidden = !on; wrap.classList.toggle("has-portrait", on); wrap.classList.toggle("right", on && pt.side === "right");
-  if (on) { const im = document.getElementById("about-portrait-img"); im.src = imgSrc(pt.src); im.alt = pt.alt || ""; }
+  if (on) { const im = document.getElementById("about-portrait-img"); im.src = imgSrc(pt.src); im.alt = pt.alt || ""; im.style.transform = +pt.zoom > 1 ? `scale(${Math.min(+pt.zoom, 2.5)})` : ""; }
 }
 SITE.about.paragraphs.forEach(t => { const p = document.createElement("p"); p.textContent = t; document.getElementById("about-paras").append(p); });
 const facts = document.getElementById("about-facts");
