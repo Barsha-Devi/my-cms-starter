@@ -663,6 +663,8 @@ function siteSections(d) {
   ];
   switch (v.arg) {
     case "home": return [
+      section("Homepage layout", "Use spacing instead of repeated grey rules, or bring the original divider lines back.",
+        checkField("Show horizontal divider lines on the homepage", home, "showDividers")),
       section("Top banner", "Put [square brackets] around a word to show it in yellow.",
         textField("Heading", home, "heading", { font: "home-h1" }),
         textField("Text under the heading", home, "lede", { area: true, font: "home-lede" })),
