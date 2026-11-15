@@ -51,7 +51,11 @@ A list of articles. An article written on your site has `"pub": "site"` and a `b
 { "d": "2026-02-01", "pub": "medium.com", "u": "https://medium.com/...", "t": "Title", "x": "Short summary", "slug": "elsewhere" }
 ```
 
-Inside body text, a blank line starts a new paragraph, `## ` makes a small heading, and `> ` makes a highlighted line.
+Inside body text, a blank line starts a new paragraph, `## ` makes a small heading, and `> ` makes a highlighted line. Inside a paragraph you can use `**bold**`, `*italic*` and `[link text](https://...)`.
+
+`img` is optional. It is the post's thumbnail: it is shown next to the title on the writing lists and at the top of the post page.
+
+In the admin, **+ New blog post** (on the home screen and on the Blog posts list) opens a form with the heading, the body text under it, a thumbnail upload with a preview, an optional summary (taken from the first paragraph when left empty), the date (today by default) and the web address (made from the heading, and editable). New posts are added at the top of `content/writing.json`. A thumbnail is shrunk in the browser to at most 1800 pixels, saved as a JPEG in `img/` and uploaded in the same save as the post. Open an existing post to change or remove its thumbnail.
 
 ### `content/quotes.json`
 

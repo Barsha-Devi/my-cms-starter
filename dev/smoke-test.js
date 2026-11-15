@@ -46,6 +46,17 @@ async function run() {
   check("refuses an SVG with an event handler", (await bad("img/y.svg", '<svg xmlns="http://www.w3.org/2000/svg" onload="alert(1)"/>')).status === 400);
   check("refuses files outside the images folder", (await bad("../evil.png", "x")).status === 400);
 
+  // A new blog post with a thumbnail, saved the way the admin's "New blog post" form saves it
+  const w = (await call("/api/content?file=writing")).body;
+  const jpg = "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==";
+  const blogPost = { d: "2026-11-16", pub: "site", t: "A test post", x: "Summary", slug: "a-test-post", img: "img/a-test-post-abc.jpg", body: ["First paragraph.", "## A subheading", "> A highlighted line"] };
+  check("saves a new blog post with a thumbnail", (await put("writing", [blogPost, ...w.data], w.sha, [{ path: blogPost.img, base64: jpg }])).status === 200);
+  const onDisk = JSON.parse(fs.readFileSync(path.join(tmp, "content/writing.json"), "utf8"));
+  check("the new post is first in the list", onDisk[0].slug === "a-test-post" && onDisk[0].img === blogPost.img && onDisk[0].body.length === 3);
+  check("the thumbnail is saved in the images folder", fs.existsSync(path.join(tmp, blogPost.img)));
+  const w2 = (await call("/api/content?file=writing")).body;
+  check("refuses a thumbnail with a bad name", (await put("writing", w2.data, w2.sha, [{ path: "img/My Photo.jpg", base64: jpg }])).status === 400);
+
   // The contact form
   const post = (body, headers = {}) => call("/api/contact", { method: "POST", body: JSON.stringify(body), headers: { "X-Admin": "0", ...headers } });
   const msg = { name: "Ada", email: "ada@example.org", topic: "idea", message: "Hello there", company: "", elapsed: 9000 };

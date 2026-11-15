@@ -62,6 +62,9 @@ select.fontsel { font-size:.8125rem; padding:9px 8px; color:var(--muted); }
 label.area .fontsel { justify-self:end; width:150px; }
 .preview { max-width:220px; max-height:160px; border-radius:8px; border:1px solid var(--line); display:none; }
 .preview.show { display:block; }
+input.big { font-size:1.25rem; font-weight:600; padding:11px 12px; }
+.fmtbar { display:flex; flex-wrap:wrap; gap:6px; }
+label .tool { justify-self:start; }
 
 /* home screen */
 .tip { margin:0 0 4px; padding:12px 14px; border:1px dashed var(--line); border-radius:12px; color:var(--muted); font-size:.875rem; }
@@ -175,28 +178,29 @@ const SCHEMAS = {
     ]
   },
   writing: {
-    singular: "article", plural: "Articles", count: "articles",
+    singular: "blog post", plural: "Blog posts", count: "posts", addLabel: "+ New blog post",
     title: w => w.t,
     sub: w => `${w.d} · ${w.pub === "site" ? "only on this site" : w.pub}`,
     imgKey: "img",
-    autoSlug: true,
-    blank: () => ({ d: new Date().toISOString().slice(0, 10), pub: "site", t: "" }),
+    autoSlug: true, editSlug: true,
+    blank: () => ({ d: today(), pub: "site", t: "" }),
     fields: [
-      { k: "t", label: "Title", required: true },
-      { k: "d", type: "date", label: "Date", required: true },
-      { k: "where", virtual: true, type: "select", options: [["site", "Only on this site (I write it here)"], ["other", "Published on another website"]], get: w => (!w.pub || w.pub === "site") ? "site" : "other", label: "Where does this article live?" },
+      { k: "where", virtual: true, type: "select", options: [["site", "Only on this site (I write it here)"], ["other", "Published on another website"]], get: w => (!w.pub || w.pub === "site") ? "site" : "other", label: "Where does this post live?" },
+      { k: "t", label: "Heading (the title of the post)", required: true, big: true, placeholder: "Why marketers should pay attention to..." },
+      { k: "body", type: "paras", tall: true, blocks: true, toolbar: true, showIf: v => v.where === "site", label: "Body text (starts under the heading)", hint: "Leave a blank line between paragraphs. Start a line with ## for a subheading or > for a highlighted line. Use **bold**, *italic* and [link text](https://...).", placeholder: "Write your post here.\n\nLeave a blank line to start a new paragraph." },
       { k: "pub", showIf: v => v.where !== "site", list: ["medium.com", "substack.com", "linkedin.com"], label: "Which website? (for example medium.com)" },
-      { k: "body", type: "paras", tall: true, showIf: v => v.where === "site", label: "Full article. Leave a blank line between paragraphs. Start a line with ## for a heading, or > for a highlighted quote." },
-      { k: "u", type: "url", showIf: v => v.where !== "site", label: "Link to the article" },
-      { k: "img", type: "image", label: "Cover image (optional for articles on this site)" },
-      { k: "x", type: "textarea", label: "Short summary", required: true }
+      { k: "u", type: "url", showIf: v => v.where !== "site", label: "Link to the post" },
+      { k: "img", type: "image", label: "Thumbnail image (optional, shown on your writing list and at the top of the post)", removable: true },
+      { k: "x", type: "textarea", label: "Short summary (optional for posts on this site, we use the first lines if you leave it empty)" },
+      { k: "d", type: "date", label: "Date", required: true },
+      { k: "slug", type: "slug", keep: true, showIf: v => v.where === "site", label: "Web address of the post", hint: "Filled in from the heading. Changing it on a published post breaks links you have already shared." }
     ]
   },
   quotes: {
     singular: "quote", plural: "Quotes", count: "quotes",
     title: q => q.q.length > 70 ? q.q.slice(0, 70) + "..." : q.q,
     sub: q => `${q.a} · ${q.d.split("-").reverse().join(".")}${q.u ? "" : " · no link"}`,
-    blank: () => ({ d: new Date().toISOString().slice(0, 10) }),
+    blank: () => ({ d: today() }),
     fields: [
       { k: "q", type: "textarea", label: "The quote", required: true },
       { k: "a", label: "Who said it", required: true },
@@ -220,6 +224,8 @@ const linkPages = () => [...LINK_PAGES, ...((state.lists.pages && state.lists.pa
 const LINK_PAGES = [["#home", "Home"], ["#writing", "Writing"], ["#photos", "Photos"], ["#about", "About"], ["#quotes", "Quotes"], ["#contact", "Contact"]];
 
 const $ = id => document.getElementById(id);
+// Today's date on this computer (not in UTC), as YYYY-MM-DD.
+const today = () => { const n = new Date(); return new Date(n.getTime() - n.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
 const state = { me: null, team: null, view: { name: "home" }, lists: {}, shas: {}, dirty: {}, pending: {}, previews: {}, loading: {}, open: {}, editMode: true };
 
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text) e.textContent = text; return e; }
@@ -289,7 +295,7 @@ function viewTitle() {
   const v = state.view;
   switch (v.name) {
     case "list": return SCHEMAS[v.arg].plural;
-    case "edit": return (v.idx === null ? "Add " : "Edit ") + SCHEMAS[v.arg].singular;
+    case "edit": return (v.idx === null ? (v.arg === "writing" ? "New " : "Add ") : "Edit ") + SCHEMAS[v.arg].singular;
     case "page": return PAGES.find(p => p[0] === v.arg)[1];
     case "menu": return "Menu and social links";
     case "footer": return "Footer";
@@ -339,6 +345,7 @@ function homeView(body) {
     const s = SCHEMAS[t], n = (state.lists[t] || []).length;
     content.append(navRow(s.plural, `${n} ${s.count}`, () => go("list", t)));
   });
+  content.append(navRow("+ New blog post", "Heading, thumbnail and body text", () => go("edit", "writing", null)));
   body.append(content);
   body.append(el("h3", "gtitle", "Whole site"));
   const site = el("ul", "navlist");
@@ -354,7 +361,7 @@ function touch(tab) { state.dirty[tab] = true; updateStatus(); refreshPreview();
 
 function listView(body, tab) {
   const s = SCHEMAS[tab], list = state.lists[tab] || [];
-  body.append(btn("+ Add " + s.singular, () => go("edit", tab, null), false, "primary addbtn"));
+  body.append(btn(s.addLabel || "+ Add " + s.singular, () => go("edit", tab, null), false, "primary addbtn"));
   if (!list.length) body.append(el("p", "empty", `No ${s.count} yet. Press the button above to add one.`));
   const ul = el("ul", "navlist");
   list.forEach((item, i) => {
@@ -376,36 +383,108 @@ function listView(body, tab) {
 }
 
 // Shrinks a photo in the browser so it uploads fast and the site stays quick.
-function shrink(file) {
+// Very large or detailed pictures are compressed a little more until they are under about 1 MB.
+function shrink(file, max = 1800) {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file), im = new Image();
     im.onload = () => {
-      const max = 1800, scale = Math.min(1, max / Math.max(im.width, im.height));
+      const scale = Math.min(1, max / Math.max(im.width, im.height));
       const c = document.createElement("canvas");
       c.width = Math.round(im.width * scale); c.height = Math.round(im.height * scale);
-      c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+      const ctx = c.getContext("2d");
+      ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height); // see-through PNGs get a white background, not black
+      ctx.drawImage(im, 0, 0, c.width, c.height);
       URL.revokeObjectURL(url);
-      resolve(c.toDataURL("image/jpeg", 0.85).split(",")[1]);
+      let q = 0.85, out = c.toDataURL("image/jpeg", q).split(",")[1];
+      while (out.length > 1400000 && q > 0.5) { q -= 0.1; out = c.toDataURL("image/jpeg", q).split(",")[1]; }
+      resolve(out);
     };
     im.onerror = () => reject(new Error("That photo could not be read. Use a JPG or PNG."));
     im.src = url;
   });
 }
 
-const slug = s => (s || "photo").replace(/['’]/g, "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/ł/g, "l").replace(/đ/g, "d").replace(/ø/g, "o").replace(/æ/g, "ae").replace(/ß/g, "ss").replace(/œ/g, "oe").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "photo";
+const slugify = s => String(s || "").replace(/['’]/g, "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/ł/g, "l").replace(/đ/g, "d").replace(/ø/g, "o").replace(/æ/g, "ae").replace(/ß/g, "ss").replace(/œ/g, "oe").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+const slug = s => slugify(s || "photo").slice(0, 40) || "photo";
+
+// Splits the body text into the list saved in the file. A blank line starts a new paragraph,
+// and a line starting with ## or > becomes its own subheading or highlighted line even without a blank line.
+function splitBody(text, blocks) {
+  const chunks = String(text || "").replace(/\r/g, "").split(/\n\s*\n/).map(x => x.trim()).filter(Boolean);
+  if (!blocks) return chunks;
+  const out = [];
+  chunks.forEach(c => {
+    let buf = [];
+    const flush = () => { if (buf.length) out.push(buf.join(" ").trim()); buf = []; };
+    c.split("\n").map(l => l.trim()).forEach(l => {
+      if (/^(## |> )/.test(l)) { flush(); out.push(l); } else if (l) buf.push(l);
+    });
+    flush();
+  });
+  return out.filter(Boolean);
+}
+
+// A short plain summary from the first paragraph, used when the summary is left empty.
+function autoSummary(body) {
+  const first = (body || []).find(b => !/^(## |> )/.test(b)) || (body || [])[0] || "";
+  const plain = first.replace(/^(## |> )/, "").replace(/\[([^\]]+)\]\([^)]+\)/g, "$1").replace(/\*\*?([^*]+)\*\*?/g, "$1").trim();
+  return plain.length > 160 ? plain.slice(0, 157).replace(/\s+\S*$/, "") + "..." : plain;
+}
+
+// Small formatting buttons above the body text. They wrap the selected words, or start a new line.
+function formatBar(ta) {
+  const bar = el("div", "fmtbar");
+  const wrap = (before, after, fallback) => {
+    const a = ta.selectionStart, b = ta.selectionEnd, sel = ta.value.slice(a, b) || fallback;
+    ta.setRangeText(before + sel + after, a, b, "select");
+    ta.setSelectionRange(a + before.length, a + before.length + sel.length); ta.focus();
+  };
+  const line = prefix => {
+    const a = ta.selectionStart, startOfLine = ta.value.lastIndexOf("\n", a - 1) + 1;
+    const cur = ta.value.slice(startOfLine).match(/^(## |> )/);
+    if (cur) { ta.setRangeText(cur[1] === prefix ? "" : prefix, startOfLine, startOfLine + cur[1].length, "end"); ta.focus(); return; } // press again to undo
+    const lead = startOfLine > 0 && ta.value.slice(0, startOfLine).trim() && !/\n\s*\n$/.test(ta.value.slice(0, startOfLine)) ? "\n" : "";
+    ta.setRangeText(lead + prefix, startOfLine, startOfLine, "end"); ta.focus();
+  };
+  const tool = (label, title, fn) => { const b = btn(label, fn, false, "tool"); b.title = title; b.setAttribute("aria-label", title); bar.append(b); };
+  tool("Subheading", "Make this line a subheading", () => line("## "));
+  tool("Highlight", "Make this line a highlighted quote", () => line("> "));
+  tool("B", "Bold", () => wrap("**", "**", "bold text"));
+  tool("I", "Italic", () => wrap("*", "*", "italic text"));
+  tool("Link", "Add a link", () => {
+    const u = prompt("Paste the web address for the link (starting with https://)"); if (!u) return;
+    wrap("[", `](${u.trim()})`, "link text");
+  });
+  return bar;
+}
+
+// Web addresses for posts can be a little longer than for photos, and are cut between words.
+const postSlug = s => {
+  const full = slugify(s);
+  if (!full) return "post";
+  if (full.length <= 60) return full;
+  const cut = full.slice(0, 61), i = cut.lastIndexOf("-");
+  return i > 20 ? cut.slice(0, i) : full.slice(0, 60).replace(/-$/, "");
+};
 
 function editView(body, tab, index) {
   const s = SCHEMAS[tab], list = state.lists[tab], isNew = index === null;
   const item = isNew ? s.blank() : { ...list[index] };
   let newImg = null; // { path, base64 }
+  let removeImg = false;
   const form = el("form"); form.id = "itemform"; form.noValidate = false;
   const inputs = {}, labels = {};
+  let slugTouched = !isNew && !!item.slug;
+  const makeSlug = () => postSlug(inputs.t ? inputs.t.value : item.t);
 
   s.fields.forEach(f => {
     const lab = el("label"); lab.append(f.label); labels[f.k] = lab;
     let inp;
     if (f.type === "textarea") { inp = el("textarea"); inp.value = item[f.k] || ""; }
-    else if (f.type === "paras") { inp = el("textarea"); if (f.tall) inp.className = "tall"; inp.value = (item[f.k] || []).join("\n\n"); }
+    else if (f.type === "paras") {
+      inp = el("textarea"); if (f.tall) inp.className = "tall"; inp.value = (item[f.k] || []).join("\n\n");
+      if (f.toolbar) lab.append(formatBar(inp));
+    }
     else if (f.type === "select") {
       inp = el("select");
       const opts = f.options.map(o => Array.isArray(o) ? o : [o, o]);
@@ -417,23 +496,44 @@ function editView(body, tab, index) {
       inp = el("input"); inp.type = "file"; inp.accept = "image/jpeg,image/png,image/webp";
       const pv = el("img", "preview" + (item[f.k] ? " show" : "")); pv.alt = "";
       if (item[f.k]) pv.src = imgSrc(tab, item[f.k]);
+      const rm = f.removable ? btn("Remove image", () => {
+        newImg = null; removeImg = true; inp.value = ""; pv.removeAttribute("src"); pv.className = "preview"; rm.hidden = true;
+      }, false, "tool") : null;
+      if (rm) rm.hidden = !item[f.k];
       inp.onchange = async () => {
         if (!inp.files[0]) return;
         try {
           const b64 = await shrink(inp.files[0]);
-          newImg = { path: `img/${slug(item.place || item.t)}-${Date.now().toString(36)}.jpg`, base64: b64 };
+          const name = inputs.t ? inputs.t.value : (item.place || item.t);
+          newImg = { path: `img/${slug(name)}-${Date.now().toString(36)}.jpg`, base64: b64 };
+          removeImg = false;
           pv.src = "data:image/jpeg;base64," + b64; pv.className = "preview show";
+          if (rm) rm.hidden = false;
         } catch (e) { toast(e.message, true); inp.value = ""; }
       };
-      lab.append(inp, pv); form.append(lab); inputs[f.k] = inp; return;
+      inp.id = "f-" + f.k; lab.htmlFor = inp.id;
+      lab.append(inp, pv); if (rm) lab.append(rm);
+      if (f.hint) lab.append(el("p", "hint", f.hint));
+      form.append(lab); inputs[f.k] = inp; return;
+    }
+    else if (f.type === "slug") {
+      inp = el("input"); inp.type = "text"; inp.value = item.slug || ""; inp.placeholder = "filled in from the heading";
+      inp.oninput = () => { slugTouched = !!inp.value.trim(); };
     }
     else {
       inp = el("input"); inp.type = f.type || "text"; inp.value = (f.k === "pub" && item.pub === "site") ? "" : (item[f.k] || "");
       if (f.list) { const dl = el("datalist"); dl.id = "dl-" + f.k; f.list.forEach(o => dl.append(new Option(o))); inp.setAttribute("list", dl.id); lab.append(dl); }
     }
+    if (f.big) inp.classList.add("big");
+    if (f.placeholder) inp.placeholder = f.placeholder;
     if (f.required) inp.required = true;
-    lab.append(inp); form.append(lab); inputs[f.k] = inp;
+    inp.id = "f-" + f.k; lab.htmlFor = inp.id; // so clicking the label never presses a formatting button
+    lab.append(inp);
+    if (f.hint) lab.append(el("p", "hint", f.hint));
+    form.append(lab); inputs[f.k] = inp;
   });
+  // The web address follows the heading until it is typed in by hand.
+  if (s.editSlug && inputs.slug && inputs.t) inputs.t.addEventListener("input", () => { if (!slugTouched) inputs.slug.value = makeSlug(); });
 
   function sync() {
     const v = {}; for (const k in inputs) v[k] = inputs[k].value;
@@ -441,6 +541,7 @@ function editView(body, tab, index) {
   }
   sync();
   body.append(form);
+  if (isNew && inputs.t) setTimeout(() => inputs.t.focus(), 0);
 
   const foot = $("sideFoot"); foot.hidden = false;
   if (!isNew) foot.append(btn("Delete", () => {
@@ -455,12 +556,13 @@ function editView(body, tab, index) {
     const out = { ...item };
     for (const f of s.fields) {
       if (f.virtual) continue;
-      if (labels[f.k].hidden) { delete out[f.k]; continue; }
+      if (labels[f.k].hidden) { if (!f.keep) delete out[f.k]; continue; }
       if (f.type === "image") {
+        if (removeImg) delete out[f.k];
         if (newImg) { out[f.k] = newImg.path; state.pending[tab][newImg.path] = newImg.base64; }
         if (!out[f.k] && f.required) { toast("Please choose a photo.", true); return; }
       } else if (f.type === "paras") {
-        out[f.k] = inputs[f.k].value.split(/\n\s*\n/).map(x => x.trim()).filter(Boolean);
+        out[f.k] = splitBody(inputs[f.k].value, f.blocks);
       } else {
         const v = inputs[f.k].value.trim();
         if (v) out[f.k] = v; else delete out[f.k];
@@ -469,19 +571,33 @@ function editView(body, tab, index) {
     if (tab === "writing") {
       if (inputs.where.value === "site") {
         out.pub = "site";
-        if (!(out.body && out.body.length)) { toast("Please write the article text.", true); return; }
+        if (!(out.body && out.body.length)) { toast("Please write the body text of the post.", true); return; }
+        if (!out.x) out.x = autoSummary(out.body);
       } else {
         if (!out.pub) { toast("Please say which website it was published on.", true); return; }
-        if (!out.u) { toast("Please add the link to the article.", true); return; }
+        if (!out.u) { toast("Please add the link to the post.", true); return; }
+        if (!out.x) { toast("Please add a short summary.", true); return; }
       }
     }
+    if (s.editSlug && !slugTouched && labels.slug && !labels.slug.hidden) delete out.slug; // made fresh below, never clashing
+    if (s.editSlug && out.slug) {
+      out.slug = postSlug(out.slug);
+      if (list.some((x, i) => i !== index && x.slug === out.slug)) { toast("Another post already uses that web address. Please change it.", true); return; }
+    }
     if (s.autoSlug && !out.slug) {
-      let base = slug(s.slugFrom ? s.slugFrom(out) : out.t), n = base, i = 2;
+      let base = (s.editSlug ? postSlug : slug)(s.slugFrom ? s.slugFrom(out) : out.t), n = base, i = 2;
       while (list.some(x => x.slug === n)) n = base + "-" + i++;
       out.slug = n;
     }
+    if (tab === "writing") { // keep the usual order of keys in the file, so changes are easy to read on GitHub
+      const order = ["d", "pub", "u", "t", "x", "slug", "img", "body"], sorted = {};
+      [...order, ...Object.keys(out)].forEach(k => { if (k in out && !(k in sorted)) sorted[k] = out[k]; });
+      Object.keys(out).forEach(k => delete out[k]); Object.assign(out, sorted);
+    }
     if (isNew) list.unshift(out); else list[index] = out;
     touch(tab); go("list", tab);
+    // Show the post itself in the preview, so you can check how it looks before saving.
+    if (tab === "writing" && out.pub === "site") refreshPreview("#article/" + out.slug);
   };
 }
 

@@ -107,13 +107,18 @@ section.page { display: grid; gap: 48px; }
 .index time, .index .site, .index .arr { color: var(--muted); font-variant-numeric: tabular-nums; }
 .index h3 { font-family: var(--body); font-size: var(--s-md); font-weight: 500; line-height: 1.4; letter-spacing: 0; transition: color .15s; }
 .index .arr { text-align: right; transition: transform .2s, color .15s; }
+/* Thumbnails on the writing list */
+.index .ttl { display: flex; align-items: center; gap: 16px; min-width: 0; }
+.index .thumb { flex: none; width: 96px; height: 64px; object-fit: cover; border-radius: 6px; background: var(--panel); border: 1px solid var(--line); }
+.index a.has-thumb { align-items: center; padding-block: 12px; }
 .index a:hover h3, .index a:hover .site, .index a:hover .arr, .index a:focus-visible h3 { color: var(--accent); }
 .index a:hover .arr { transform: translate(2px, -2px); }
 @media (max-width: 560px) {
   .index .head { display: none; }
   .index a { grid-template-columns: minmax(0, 1fr) 20px; gap: 4px 12px; }
   .index time, .index .site { grid-column: 1; font-size: var(--s-sm); }
-  .index h3 { grid-column: 1; grid-row: 2; }
+  .index .ttl { grid-column: 1; grid-row: 2; }
+  .index .thumb { width: 72px; height: 48px; }
   .index .site { grid-row: 3; }
   .index .arr { grid-column: 2; grid-row: 1 / 4; align-self: center; }
 }
@@ -210,6 +215,8 @@ article.post h1 { font-size: clamp(2rem, 5vw, 2.75rem); line-height: 1.1; font-w
 article.post .meta { font-family: var(--mono); font-size: var(--s-xs); color: var(--muted); display: flex; gap: 16px; flex-wrap: wrap; }
 article.post .body { display: grid; gap: 20px; font-size: 1.125rem; line-height: 1.75; }
 article.post .body h2 { font-size: var(--s-lg); margin-top: 12px; }
+article.post .post-cover { margin: 0; }
+article.post .post-cover img { display: block; width: 100%; max-height: 520px; object-fit: cover; border-radius: 12px; background: var(--panel); }
 article.post .pull { border-left: 2px solid var(--accent); padding-left: 20px; font-family: var(--display); font-size: 1.375rem; line-height: 1.4; color: var(--text); }
 
 /* About and Now */
@@ -477,6 +484,7 @@ body:has(#p-home:not(.with-dividers):not([hidden])) .foot-base { border-top: 0; 
       <a href="#writing" id="post-back">Back</a>
       <h1 id="post-title"></h1>
       <div class="meta" id="post-meta"></div>
+      <figure class="post-cover" id="post-cover" hidden><img id="post-cover-img" alt=""></figure>
       <div class="body" id="post-body"></div>
     </article>
   </section>
@@ -727,11 +735,13 @@ lb.addEventListener("keydown", e => { if (e.key === "ArrowRight") openPhoto(cur 
 
 const PUB_NAME = { site: "This site" };
 function fmtDate(iso) { return new Date(iso + "T00:00:00").toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }); }
+// The title cell, with the post's thumbnail in front of it when it has one
+const writingTitle = w => `<span class="ttl">${w.img ? `<img class="thumb" src="${esc(imgSrc(w.img))}" alt="" loading="lazy" width="96" height="64">` : ""}<h3>${esc(w.t)}</h3></span>`;
 function writingRows(list) {
   return `<li class="head" aria-hidden="true"><span>Year</span><span>Title</span><span>Published on</span><span></span></li>` + list.map(w =>
     w.pub === "site"
-      ? `<li><a href="#article/${esc(w.slug)}"><time datetime="${esc(w.d)}" title="${esc(fmtDate(w.d))}">${esc(w.d.slice(0, 4))}</time><h3>${esc(w.t)}</h3><span class="site">${PUB_NAME.site}</span><span class="arr">&#8594;</span></a></li>`
-      : `<li><a href="${esc(webHref(w.u))}" target="_blank" rel="noopener"><time datetime="${esc(w.d)}" title="${esc(fmtDate(w.d))}">${esc(w.d.slice(0, 4))}</time><h3>${esc(w.t)}</h3><span class="site">${esc(PUB_NAME[w.pub] || w.pub)}</span><span class="arr">&#8599;</span></a></li>`).join("");
+      ? `<li><a href="#article/${esc(w.slug)}"${w.img ? ' class="has-thumb"' : ""}><time datetime="${esc(w.d)}" title="${esc(fmtDate(w.d))}">${esc(w.d.slice(0, 4))}</time>${writingTitle(w)}<span class="site">${PUB_NAME.site}</span><span class="arr">&#8594;</span></a></li>`
+      : `<li><a href="${esc(webHref(w.u))}" target="_blank" rel="noopener"${w.img ? ' class="has-thumb"' : ""}><time datetime="${esc(w.d)}" title="${esc(fmtDate(w.d))}">${esc(w.d.slice(0, 4))}</time>${writingTitle(w)}<span class="site">${esc(PUB_NAME[w.pub] || w.pub)}</span><span class="arr">&#8599;</span></a></li>`).join("");
 }
 // Newest first, so a new article added anywhere in WRITING shows up on Home automatically
 const WRITING_SORTED = [...WRITING].sort((a, b) => b.d.localeCompare(a.d));
@@ -805,12 +815,15 @@ function renderEntry(n, meta, back) {
   const bk = document.getElementById("post-back"); bk.href = back[0]; bk.textContent = back[1];
   const m = document.getElementById("post-meta"); m.textContent = "";
   meta.filter(Boolean).forEach(v => { const e = document.createElement("span"); e.textContent = v; m.append(e); });
+  const cover = document.getElementById("post-cover"), coverImg = document.getElementById("post-cover-img");
+  cover.hidden = !n.img;
+  if (n.img) { coverImg.src = imgSrc(n.img); coverImg.alt = ""; } else coverImg.removeAttribute("src");
   const body = document.getElementById("post-body"); body.textContent = "";
   (n.body && n.body.length ? n.body : [n.x]).forEach(b => {
     const pull = b.startsWith("> "), h = b.startsWith("## ");
     const e = document.createElement(h ? "h2" : "p");
     if (pull) e.className = "pull";
-    e.textContent = h ? b.slice(3) : pull ? b.slice(2) : b;
+    inlineText(e, h ? b.slice(3) : pull ? b.slice(2) : b); // **bold**, *italic* and [links]
     body.append(e);
   });
 }
