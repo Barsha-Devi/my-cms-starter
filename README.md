@@ -12,7 +12,7 @@ There is no database, no server to look after, no build step and no dependencies
 
 **Pages and sections.** Edit the text of every page section by section, and add your own sections to any page or build whole new pages from blocks (headings, text, images, galleries, YouTube and Vimeo videos, buttons, quotes, lists, embeds and ready-made layouts). Drag blocks to reorder them.
 
-**Content types.** Photos (each with its own story and its own web address), articles (written on your site or linking to where they were published), quotes (each linking to its source) and a "companies I have worked with" logo wall.
+**Content types.** Photos (each with its own story and its own web address), blog posts (written on your site with a heading, a thumbnail and the body text, or linking to where they were published), quotes (each linking to its source) and a "companies I have worked with" logo wall.
 
 **Design controls.** A font picker with 42 free Google Fonts on every piece of text, plus menu, footer, About and Contact editors.
 
